@@ -11,33 +11,15 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
-    - name: Force Create Miqyas App
+    - name: Create Miqyas App Clean
       run: |
-        rm -rf .github/workflows/build-app.yml
-        flutter create --force .
-        mkdir -p .github/workflows
-        cat << 'EOF' > .github/workflows/build-app.yml
-        name: AI Build Agent
-        on:
-          push:
-            branches: [ main ]
-        jobs:
-          build:
-            runs-on: ubuntu-latest
-            steps:
-            - uses: actions/checkout@v3
-            - name: Set up Flutter
-              uses: subosito/flutter-action@v2
-              with:
-                channel: 'stable'
-            - name: Force Create Miqyas App
-              run: echo "بيئة فلاتر جاهزة ومكتملة"
-        EOF
+        find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
+        flutter create . --offline
     - name: Push Files to Repository
       run: |
         git config --global user.name "Aln-gp"
         git config --global user.email "alnofaie.gp@gmail.com"
         git add -A
-        git commit -m "تأسيس ملفات متجر مقياس بالكامل" || echo "No changes"
+        git commit -m "تأسيس ملفات متجر مقياس" || echo "No changes"
         git push origin main || echo "No push"
         
