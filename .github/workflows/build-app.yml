@@ -11,8 +11,8 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
-    - name: Initialize AI Code
+    - name: Clean and Build Miqyas App
       run: |
-        echo "تفعيل الوكيل الذكي لبناء متجر مقياس"
-        flutter create .
+        rm -rf *
+        flutter create miqyas_ecommerce_app
         
