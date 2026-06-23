@@ -1,4 +1,4 @@
-name: AI Ultimate App Builder v6
+name: AI Ultimate App Builder v7
 on:
   push:
     branches: [ main ]
@@ -216,7 +216,11 @@ jobs:
                           ),
                           BottomNavigationBar(
                             currentIndex: _selectedIndex,
-                            onTap: (index) => setState(() => _selectedIndex = index),
+                            onTap: (index) {
+                              setState(() {
+                                _selectedIndex = index;
+                              });
+                            },
                             type: BottomNavigationBarType.fixed,
                             backgroundColor: Colors.transparent,
                             elevation: 0,
@@ -234,7 +238,11 @@ jobs:
                     )
                   : BottomNavigationBar(
                       currentIndex: _selectedIndex,
-                      onTap: (index) => setState(() => _selectedIndex = index),
+                      onTap: (index) {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
                       type: BottomNavigationBarType.fixed,
                       backgroundColor: Colors.white,
                       elevation: 8,
