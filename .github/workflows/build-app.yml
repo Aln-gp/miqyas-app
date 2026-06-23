@@ -1,4 +1,4 @@
-name: AI Ultimate App Builder v10
+name: AI Ultimate App Builder v12
 on:
   push:
     branches: [ main ]
@@ -124,8 +124,8 @@ jobs:
                         ),
                       ),
                       const SizedBox(height: 20),
-                      const Row(
-                        children: [
+                      Row(
+                        children: const [
                           Expanded(child: Divider()),
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
