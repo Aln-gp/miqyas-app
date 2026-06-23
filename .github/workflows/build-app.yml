@@ -11,15 +11,16 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
-    - name: Create Miqyas App Clean
+    - name: Create App in Subfolder
       run: |
-        find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
-        flutter create . --project-name=miqyas_app
+        mkdir -p miqyas_store
+        cd miqyas_store
+        flutter create --project-name=miqyas_app .
     - name: Push Files to Repository
       run: |
         git config --global user.name "Aln-gp"
         git config --global user.email "alnofaie.gp@gmail.com"
-        git add -A
-        git commit -m "تأسيس ملفات متجر مقياس" || echo "No changes"
+        git add .
+        git commit -m "تأسيس مجلد متجر مقياس الرسمي" || echo "No changes"
         git push origin main || echo "No push"
         
