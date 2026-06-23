@@ -7,12 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
     - name: Clean and Build Miqyas App
       run: |
-        rm -rf *
-        flutter create miqyas_ecommerce_app
+        flutter create .
+    - name: Push Files to Repository
+      run: |
+        git config --global user.name "Aln-gp"
+        git config --global user.email "alnofaie.gp@gmail.com"
+        git add .
+        git commit -m "إضافة ملفات تطبيق متجر مقياس الأساسية" || echo "No changes to commit"
+        git push origin main || echo "No changes to push"
         
