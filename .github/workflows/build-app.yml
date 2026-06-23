@@ -1,4 +1,4 @@
-name: AI Ultimate App Builder v8
+name: AI Ultimate App Builder v10
 on:
   push:
     branches: [ main ]
@@ -25,6 +25,7 @@ jobs:
       run: |
         flutter create --project-name=miqyas_app --platforms=android,ios miqyas_store
         cd miqyas_store
+        rm -f lib/main.dart
         mkdir -p lib
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
