@@ -21,6 +21,9 @@ jobs:
       with:
         channel: 'stable'
 
+    - name: Accept Android licenses
+      run: yes | flutter doctor --android-licenses
+
     - name: Create and Code Perfect Miqyas Store
       run: |
         flutter create --project-name=miqyas_app --platforms=android,ios miqyas_store
@@ -256,6 +259,7 @@ jobs:
                         BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'حسابي'),
                       ],
                     ),
+              ),
             );
           }
         }
@@ -326,7 +330,7 @@ jobs:
                       ),
                       itemCount: 6,
                       itemBuilder: (context, index) {
-                        final products = ['ساعة ذكية برو', 'سماعات لاسلكية', 'شاحن سريع خارق', 'لوحة مفاتيح ميكانيكية', 'قاعدة شحن ذكية', 'حقيبة ظهر ذكية'];
+                        final products = ['ساعة ذكية برو', 'سماعات لاسلكية', 'شاحن سريع خارق', 'لوحة مفاتيح ميكانيكية', 'قاعدة شحن ذكي', 'جراب حماية'];
                         final prices = ['299 ر.س', '149 ر.س', '89 ر.س', '249 ر.س', '119 ر.س', '179 ر.س'];
                         return Card(
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -390,4 +394,3 @@ jobs:
       with:
         name: miqyas-ios-ipa
         path: miqyas_store/app-release.ipa
-        
