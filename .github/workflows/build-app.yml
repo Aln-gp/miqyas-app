@@ -1,4 +1,4 @@
-name: AI Ultimate App Builder v7
+name: AI Ultimate App Builder v8
 on:
   push:
     branches: [ main ]
@@ -345,7 +345,7 @@ jobs:
                                 Text(products[index], style: const TextStyle(fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 4),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.between,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(prices[index], style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
                                     IconButton(icon: const Icon(Icons.add_shopping_cart, size: 20, color: Colors.deepPurple), onPressed: () {}),
