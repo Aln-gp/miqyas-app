@@ -1,26 +1,138 @@
-name: AI Build Agent
+name: AI Ultimate IPA and APK Builder
 on:
   push:
     branches: [ main ]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
-    - name: Create App in Subfolder
+
+    - name: Create and Code Miqyas App
       run: |
-        mkdir -p miqyas_store
+        flutter create --project-name=miqyas_app --platforms=android,ios miqyas_store
         cd miqyas_store
-        flutter create --project-name=miqyas_app .
-    - name: Push Files to Repository
+        mkdir -p lib
+        cat << 'EOF' > lib/main.dart
+        import 'package:flutter/material.dart';
+
+        void main() {
+          runApp(const MiqyasApp());
+        }
+
+        class MiqyasApp extends StatelessWidget {
+          const MiqyasApp({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'متجر مقياس',
+              theme: ThemeData(
+                primaryColor: Colors.deepPurple,
+                scaffoldBackgroundColor: const Color(0xfffdfbf7),
+              ),
+              home: const LoginPage(),
+            );
+          }
+        }
+
+        class LoginPage extends StatelessWidget {
+          const LoginPage({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              body: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.storefront, size: 90, color: Colors.deepPurple),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'متجر مقياس',
+                        style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('بوابتك للتجارة والدروب شيبنج الذكي', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                      const SizedBox(height: 40),
+                      TextField(
+                        textAlign: TextAlign.right,
+                        decoration: InputDecoration(
+                          labelText: 'البريد الإلكتروني',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          prefixIcon: const Icon(Icons.email),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        obscureText: true,
+                        textAlign: TextAlign.right,
+                        decoration: InputDecoration(
+                          labelText: 'كلمة المرور',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          prefixIcon: const Icon(Icons.lock),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('تسجيل الدخول', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+        }
+        EOF
+
+    - name: Build Android APK
       run: |
-        git config --global user.name "Aln-gp"
-        git config --global user.email "alnofaie.gp@gmail.com"
-        git add .
-        git commit -m "تأسيس مجلد متجر مقياس الرسمي" || echo "No changes"
-        git push origin main || echo "No push"
+        cd miqyas_store
+        flutter build apk --release
+
+    - name: Build iOS IPA (Unsigned)
+      run: |
+        cd miqyas_store
+        flutter build ios --release --no-codesign
+        mkdir -p Payload
+        mv build/ios/iphoneos/Runner.app Payload/
+        zip -r app-release.ipa Payload
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: miqyas-android-apk
+        path: miqyas_store/build/app/outputs/flutter-apk/app-release.apk
+
+    - name: Upload iOS IPA Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: miqyas-ios-ipa
+        path: miqyas_store/app-release.ipa
         
