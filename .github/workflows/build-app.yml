@@ -1,4 +1,4 @@
-name: AI Ultimate App Builder v5
+name: AI Ultimate App Builder v6
 on:
   push:
     branches: [ main ]
@@ -28,7 +28,7 @@ jobs:
         mkdir -p lib
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
-        import 'dart:ui'; // لتأثير الزجاج للآيفون المتوافق
+        import 'dart:ui';
 
         void main() {
           runApp(const MiqyasApp());
@@ -53,7 +53,6 @@ jobs:
           }
         }
 
-        // --- 1. صفحة تسجيل الدخول المتكاملة ---
         class LoginPage extends StatefulWidget {
           const LoginPage({super.key});
 
@@ -80,7 +79,6 @@ jobs:
                       const SizedBox(height: 8),
                       const Text('بوابتك للتجارة والدروب شيبنج الذكي', style: TextStyle(color: Colors.grey, fontSize: 16)),
                       const SizedBox(height: 32),
-                      
                       TextField(
                         textAlign: TextAlign.right,
                         decoration: InputDecoration(
@@ -90,7 +88,6 @@ jobs:
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
                       TextField(
                         obscureText: true,
                         textAlign: TextAlign.right,
@@ -100,7 +97,6 @@ jobs:
                           prefixIcon: const Icon(Icons.lock),
                         ),
                       ),
-                      
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton(
@@ -109,7 +105,6 @@ jobs:
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -128,7 +123,6 @@ jobs:
                         ),
                       ),
                       const SizedBox(height: 20),
-                      
                       const Row(
                         children: [
                           Expanded(child: Divider()),
@@ -140,14 +134,13 @@ jobs:
                         ],
                       ),
                       const SizedBox(height: 20),
-                      
                       SizedBox(
                         width: double.infinity,
                         height: 52,
                         child: OutlinedButton.icon(
                           onPressed: () {},
                           icon: const Icon(Icons.g_mobiledata, size: 30, color: Colors.red),
-                          label: const Text('تسجيل الدخول عبر قوقل', style: TextStyle(fontSize: 16, color: Colors.black80)),
+                          label: const Text('تسجيل الدخول عبر قوقل', style: TextStyle(fontSize: 16, color: Colors.black87)),
                           style: OutlinedButton.styleFrom(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             side: const BorderSide(color: Colors.grey),
@@ -155,7 +148,6 @@ jobs:
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -174,7 +166,6 @@ jobs:
           }
         }
 
-        // --- 2. صفحة التنقل الرئيسية الذكية جداً للتعرف على النظام وإعداداته ---
         class MainNavigationPage extends StatefulWidget {
           const MainNavigationPage({super.key});
 
@@ -194,18 +185,12 @@ jobs:
 
           @override
           Widget build(BuildContext context) {
-            // 1. التعرف هل الجهاز آيفون (iOS)؟
             bool isIos = Theme.of(context).platform == TargetPlatform.iOS;
-            
-            // 2. التحقق هل خيار تقليل الشفافية مفعل بالآيفون؟ (إذا ترو يعني الزجاج معطل بنظام الجوال)
             bool isTransparencyDisabled = MediaQuery.of(context).accessibleNavigation;
-
-            // تحديد هل نشغل تأثير الزجاج الفخم للآيفون المستوفي الشروط؟
             bool showGlassEffect = isIos && !isTransparencyDisabled;
 
             return Scaffold(
-              // يمتد المحتوى بالخلف فقط إذا كان التأثير الزجاجي شغال بالآيفون
-              extendBody: showGlassEffect, 
+              extendBody: showGlassEffect,
               body: Directionality(
                 textDirection: TextDirection.rtl,
                 child: _pages[_selectedIndex],
@@ -213,7 +198,7 @@ jobs:
               bottomNavigationBar: Directionality(
                 textDirection: TextDirection.rtl,
                 child: showGlassEffect 
-                  ? Container( // --- تصميم الآيفون الزجاجي الفخم في حال دعم الجهاز والميزة ---
+                  ? Container(
                       height: 85,
                       color: Colors.transparent,
                       child: Stack(
@@ -247,11 +232,11 @@ jobs:
                         ],
                       ),
                     )
-                  : BottomNavigationBar( // --- تصميم الأندرويد والآيفون غير المحدث (شريط كلاسيكي عادي 100%) ---
+                  : BottomNavigationBar(
                       currentIndex: _selectedIndex,
                       onTap: (index) => setState(() => _selectedIndex = index),
                       type: BottomNavigationBarType.fixed,
-                      backgroundColor: Colors.white, // أبيض سادة كلاسيكي
+                      backgroundColor: Colors.white,
                       elevation: 8,
                       selectedItemColor: Colors.deepPurple,
                       unselectedItemColor: Colors.grey[600],
@@ -266,7 +251,6 @@ jobs:
           }
         }
 
-        // --- 3. واجهة المتجر الرئيسية ---
         class HomePage extends StatelessWidget {
           const HomePage({super.key});
 
@@ -285,7 +269,7 @@ jobs:
               ),
               body: SingleChildScrollView(
                 padding: EdgeInsets.only(
-                  bottom: showGlassEffect ? 100 : 20, // مسافة ديناميكية بناءً على حالة الشريط
+                  bottom: showGlassEffect ? 100 : 20,
                   left: 16, 
                   right: 16, 
                   top: 16
