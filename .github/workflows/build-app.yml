@@ -14,7 +14,7 @@ jobs:
     - name: Create Miqyas App Clean
       run: |
         find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
-        flutter create . --offline
+        flutter create . --project-name=miqyas_app
     - name: Push Files to Repository
       run: |
         git config --global user.name "Aln-gp"
