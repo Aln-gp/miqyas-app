@@ -1,4 +1,4 @@
-name: AI Ultimate IPA and APK Builder
+name: AI Ultimate App Builder v5
 on:
   push:
     branches: [ main ]
@@ -21,13 +21,14 @@ jobs:
       with:
         channel: 'stable'
 
-    - name: Create and Code Miqyas App
+    - name: Create and Code Perfect Miqyas Store
       run: |
         flutter create --project-name=miqyas_app --platforms=android,ios miqyas_store
         cd miqyas_store
         mkdir -p lib
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
+        import 'dart:ui'; // لتأثير الزجاج للآيفون المتوافق
 
         void main() {
           runApp(const MiqyasApp());
@@ -41,8 +42,10 @@ jobs:
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               title: 'متجر مقياس',
+              locale: const Locale('ar', 'SA'),
               theme: ThemeData(
                 primaryColor: Colors.deepPurple,
+                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
                 scaffoldBackgroundColor: const Color(0xfffdfbf7),
               ),
               home: const LoginPage(),
@@ -50,9 +53,15 @@ jobs:
           }
         }
 
-        class LoginPage extends StatelessWidget {
+        // --- 1. صفحة تسجيل الدخول المتكاملة ---
+        class LoginPage extends StatefulWidget {
           const LoginPage({super.key});
 
+          @override
+          State<LoginPage> createState() => _LoginPageState();
+        }
+
+        class _LoginPageState extends State<LoginPage> {
           @override
           Widget build(BuildContext context) {
             return Scaffold(
@@ -70,7 +79,8 @@ jobs:
                       ),
                       const SizedBox(height: 8),
                       const Text('بوابتك للتجارة والدروب شيبنج الذكي', style: TextStyle(color: Colors.grey, fontSize: 16)),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 32),
+                      
                       TextField(
                         textAlign: TextAlign.right,
                         decoration: InputDecoration(
@@ -80,6 +90,7 @@ jobs:
                         ),
                       ),
                       const SizedBox(height: 16),
+                      
                       TextField(
                         obscureText: true,
                         textAlign: TextAlign.right,
@@ -89,12 +100,26 @@ jobs:
                           prefixIcon: const Icon(Icons.lock),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () {},
+                          child: const Text('هل نسيت الرمز السري؟', style: TextStyle(color: Colors.deepPurple)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
                       SizedBox(
                         width: double.infinity,
                         height: 52,
                         child: ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const MainNavigationPage()),
+                            );
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepPurple,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -102,8 +127,245 @@ jobs:
                           child: const Text('تسجيل الدخول', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Text('أو سجل عبر', style: TextStyle(color: Colors.grey)),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.g_mobiledata, size: 30, color: Colors.red),
+                          label: const Text('تسجيل الدخول عبر قوقل', style: TextStyle(fontSize: 16, color: Colors.black80)),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            side: const BorderSide(color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('ليس لديك حساب؟'),
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text('تسجيل حساب جديد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
+                ),
+              ),
+            );
+          }
+        }
+
+        // --- 2. صفحة التنقل الرئيسية الذكية جداً للتعرف على النظام وإعداداته ---
+        class MainNavigationPage extends StatefulWidget {
+          const MainNavigationPage({super.key});
+
+          @override
+          State<MainNavigationPage> createState() => _MainNavigationPageState();
+        }
+
+        class _MainNavigationPageState extends State<MainNavigationPage> {
+          int _selectedIndex = 0;
+          
+          final List<Widget> _pages = [
+            const HomePage(),
+            const Center(child: Text('الأقسام قادمة قريباً', style: TextStyle(fontSize: 20))),
+            const Center(child: Text('السلة فارغة حالياً', style: TextStyle(fontSize: 20))),
+            const Center(child: Text('الملف الشخصي', style: TextStyle(fontSize: 20))),
+          ];
+
+          @override
+          Widget build(BuildContext context) {
+            // 1. التعرف هل الجهاز آيفون (iOS)؟
+            bool isIos = Theme.of(context).platform == TargetPlatform.iOS;
+            
+            // 2. التحقق هل خيار تقليل الشفافية مفعل بالآيفون؟ (إذا ترو يعني الزجاج معطل بنظام الجوال)
+            bool isTransparencyDisabled = MediaQuery.of(context).accessibleNavigation;
+
+            // تحديد هل نشغل تأثير الزجاج الفخم للآيفون المستوفي الشروط؟
+            bool showGlassEffect = isIos && !isTransparencyDisabled;
+
+            return Scaffold(
+              // يمتد المحتوى بالخلف فقط إذا كان التأثير الزجاجي شغال بالآيفون
+              extendBody: showGlassEffect, 
+              body: Directionality(
+                textDirection: TextDirection.rtl,
+                child: _pages[_selectedIndex],
+              ),
+              bottomNavigationBar: Directionality(
+                textDirection: TextDirection.rtl,
+                child: showGlassEffect 
+                  ? Container( // --- تصميم الآيفون الزجاجي الفخم في حال دعم الجهاز والميزة ---
+                      height: 85,
+                      color: Colors.transparent,
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.65), 
+                                  border: Border(top: BorderSide(color: Colors.white.withOpacity(0.4), width: 0.5)),
+                                ),
+                              ),
+                            ),
+                          ),
+                          BottomNavigationBar(
+                            currentIndex: _selectedIndex,
+                            onTap: (index) => setState(() => _selectedIndex = index),
+                            type: BottomNavigationBarType.fixed,
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            selectedItemColor: Colors.deepPurple,
+                            unselectedItemColor: Colors.grey[700],
+                            items: const [
+                              BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'الرئيسية'),
+                              BottomNavigationBarItem(icon: Icon(Icons.category_outlined), label: 'الأقسام'),
+                              BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: 'السلة'),
+                              BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'حسابي'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  : BottomNavigationBar( // --- تصميم الأندرويد والآيفون غير المحدث (شريط كلاسيكي عادي 100%) ---
+                      currentIndex: _selectedIndex,
+                      onTap: (index) => setState(() => _selectedIndex = index),
+                      type: BottomNavigationBarType.fixed,
+                      backgroundColor: Colors.white, // أبيض سادة كلاسيكي
+                      elevation: 8,
+                      selectedItemColor: Colors.deepPurple,
+                      unselectedItemColor: Colors.grey[600],
+                      items: const [
+                        BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'الرئيسية'),
+                        BottomNavigationBarItem(icon: Icon(Icons.category_outlined), label: 'الأقسام'),
+                        BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: 'السلة'),
+                        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'حسابي'),
+                      ],
+                    ),
+            );
+          }
+        }
+
+        // --- 3. واجهة المتجر الرئيسية ---
+        class HomePage extends StatelessWidget {
+          const HomePage({super.key});
+
+          @override
+          Widget build(BuildContext context) {
+            bool isIos = Theme.of(context).platform == TargetPlatform.iOS;
+            bool isTransparencyDisabled = MediaQuery.of(context).accessibleNavigation;
+            bool showGlassEffect = isIos && !isTransparencyDisabled;
+
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('متجر مقياس الإلكتروني', style: TextStyle(fontWeight: FontWeight.bold)),
+                backgroundColor: Colors.deepPurple,
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+              body: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: showGlassEffect ? 100 : 20, // مسافة ديناميكية بناءً على حالة الشريط
+                  left: 16, 
+                  right: 16, 
+                  top: 16
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'ابحث عن منتجات، ماركات...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(colors: [Colors.deepPurple, Colors.indigo]),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('عروض الصيف الفخمة! 🔥', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 8),
+                          Text('خصومات تصل إلى 50% على المنتجات الأكثر طلباً', style: TextStyle(color: Colors.white70)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('أحدث المنتجات', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemCount: 6,
+                      itemBuilder: (context, index) {
+                        final products = ['ساعة ذكية برو', 'سماعات لاسلكية', 'شاحن سريع خارق', 'لوحة مفاتيح ميكانيكية', 'قاعدة شحن ذكية', 'حقيبة ظهر ذكية'];
+                        final prices = ['299 ر.س', '149 ر.س', '89 ر.س', '249 ر.س', '119 ر.س', '179 ر.س'];
+                        return Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+                                    child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(products[index], style: const TextStyle(fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 4),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.between,
+                                  children: [
+                                    Text(prices[index], style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
+                                    IconButton(icon: const Icon(Icons.add_shopping_cart, size: 20, color: Colors.deepPurple), onPressed: () {}),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             );
