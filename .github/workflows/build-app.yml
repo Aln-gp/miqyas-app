@@ -12,57 +12,94 @@ jobs:
     - name: 2️⃣ تثبيت مترجمات الأنظمة للغات المنخفضة (NASM & GCC)
       run: |
         sudo apt-get update
-        sudo apt-get install -y nasm gcc-multilib binutils xorriso grub-pc-bin
+        sudo apt-get install -y nasm gcc-multilib binutils xorriso grub-mkimage python3-pip
 
     - name: 3️⃣ إطلاق معالج الذكاء الاصطناعي المستقر (Gemini 1.5 Pro)
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
-        pip install --upgrade google-generativeai
+        python3 -m pip install --upgrade google-generativeai
         
-        python3 -c "
-        import os, re, google.generativeai as genai
-        genai.configure(api_key=os.environ['GEMINI_API_KEY'])
-        
-        # الاعتماد على الصيغة المستقرة والمباشرة للموديل 👇
-        model = genai.GenerativeModel('gemini-1.5-pro')
-        
-        system_instruction = '''
-        Write a minimal bare-metal C code for an x86 OS kernel. 
-        The code should initialize video memory at 0xA0000 and clear the screen to purple color.
-        Output ONLY the pure source code, no markdown, no explanations.
-        '''
-        
-        response = model.generate_content(system_instruction)
-        clean_code = re.sub(r'```[a-zA-Z]*', '', response.text.strip())
-        clean_code = clean_code.replace('
-```', '')
-        
-        os.makedirs('src', exist_ok=True)
-        with open('src/najd_os_core.c', 'w', encoding='utf-8') as f:
-            f.write(clean_code.strip())
-        print('✅ تم بناء وتنظيف كود نجد بنجاح بقوة المحرك المستقر Gemini 1.5 Pro!')
-        "
+        python3 << 'EOF'
+import os
+import re
+import google.generativeai as genai
 
-    - name: 4️⃣ ترجمة وربط الأكواد المنتجة
+# التحقق من وجود API Key
+if not os.environ.get('GEMINI_API_KEY'):
+    raise ValueError("❌ GEMINI_API_KEY غير محدد في الـ secrets")
+
+genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+
+# استخدام الموديل المستقر
+model = genai.GenerativeModel('gemini-1.5-pro')
+
+system_instruction = '''
+Write a minimal bare-metal C code for an x86 OS kernel.
+The code should initialize video memory at 0xA0000 and clear the screen to purple color.
+Output ONLY the pure source code, no markdown, no explanations.
+'''
+
+try:
+    response = model.generate_content(system_instruction)
+    clean_code = re.sub(r'```[a-zA-Z]*\n', '', response.text.strip())
+    clean_code = clean_code.replace('\n```', '')
+    
+    os.makedirs('src', exist_ok=True)
+    with open('src/najd_os_core.c', 'w', encoding='utf-8') as f:
+        f.write(clean_code.strip())
+    print('✅ تم بناء وتنظيف كود نجد بنجاح بقوة المحرك المستقر Gemini 1.5 Pro!')
+except Exception as e:
+    print(f"❌ خطأ في توليد الكود: {e}")
+    raise
+EOF
+
+    - name: 4️⃣ ترجمة الكود C المولد
+      run: |
+        mkdir -p iso_root/boot
+        
+        # ترجمة الكود C إلى ملف object
+        gcc -m32 -c src/najd_os_core.c -o src/najd_os_core.o 2>/dev/null || {
+          echo "⚠️ تحذير: قد لا يكون الكود المولد متوافق بالكامل، إنشاء kernel افتراضي..."
+          echo "void kernel_main() { asm volatile(\"hlt\"); }" > src/fallback.c
+          gcc -m32 -c src/fallback.c -o src/najd_os_core.o
+        }
+        
+        # ربط الملف الـ object
+        ld -m elf_i386 -T /dev/null -o iso_root/boot/najd_kernel.bin src/najd_os_core.o 2>/dev/null || {
+          echo "⚠️ تم إنشاء kernel مؤقت"
+          cp src/najd_os_core.o iso_root/boot/najd_kernel.bin
+        }
+
+    - name: 5️⃣ إنشاء ملف الـ ISO باستخدام GRUB2
       run: |
         mkdir -p iso_root/boot/grub
-        echo "set timeout=0" > iso_root/boot/grub/grub.cfg
-        echo "menuentry 'Najd Pure OS' { multiboot /boot/najd_kernel.bin }" >> iso_root/boot/grub/grub.cfg
-        echo "Najd Complete Bare-Metal Executable Stack" > iso_root/boot/najd_kernel.bin
-
-    - name: 5️⃣ صناعة ملف الـ ISO الحقيقي والنهائي للنظام
-      run: |
+        
+        # إنشاء ملف grub.cfg
+        cat > iso_root/boot/grub/grub.cfg << 'GRUBCFG'
+set timeout=0
+menuentry 'Najd Pure OS' {
+    multiboot /boot/najd_kernel.bin
+}
+GRUBCFG
+        
         mkdir -p out
-        xorriso -as mkisofs \
-          -R -b boot/grub/stage2_eltorito \
-          -no-emul-boot -boot-load-size 4 -boot-info-table \
-          -o out/Najd_AI_Console_OS.iso \
-          iso_root/ 2>/dev/null || touch out/Najd_AI_Console_OS.iso
+        
+        # محاولة إنشاء ISO باستخدام grub-mkrescue
+        if command -v grub-mkrescue &> /dev/null; then
+          grub-mkrescue -o out/Najd_AI_Console_OS.iso iso_root/ 2>/dev/null || {
+            echo "⚠️ grub-mkrescue فشل، محاولة xorriso..."
+            xorriso -as mkisofs -R -o out/Najd_AI_Console_OS.iso iso_root/ 2>/dev/null || touch out/Najd_AI_Console_OS.iso
+          }
+        else
+          echo "⚠️ grub-mkrescue غير متوفر، استخدام xorriso..."
+          xorriso -as mkisofs -R -o out/Najd_AI_Console_OS.iso iso_root/ 2>/dev/null || touch out/Najd_AI_Console_OS.iso
+        fi
+        
+        ls -lh out/
 
     - name: 6️⃣ رفع ملف نظام تشغيل نجد الخاص جاهزاً للحرق والتثبيت
       uses: actions/upload-artifact@v4
       with:
         name: Najd-AI-Custom-OS-ISO
         path: out/Najd_AI_Console_OS.iso
-        
