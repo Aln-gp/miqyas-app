@@ -1,11 +1,11 @@
-name: Najd AI Auto-OS Builder v12.0
+name: Najd AI Modern-OS Builder v14.0
 on:
   workflow_dispatch:
     inputs:
       os_style:
         description: 'طابع نظام التشغيل وجاهزية الواجهة'
         required: true
-        default: 'سينمائي فخم باللون البنفسجي والذهبي وشاشة إقلاع متحركة ومكتمل الأكواد'
+        default: 'سينمائي فخم باللون البنفسجي والذهبي ومكتمل الأكواد بأحدث موديل'
 
 jobs:
   ai-generate-pure-os:
@@ -19,7 +19,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y nasm gcc-multilib binutils xorriso grub-pc-bin
 
-    - name: 3️⃣ تثبيت مكتبة الـ AI وإطلاق معالج الذكاء الاصطناعي لبناء النظام
+    - name: 3️⃣ تثبيت مكتبة الـ AI وإطلاق معالج الذكاء الاصطناعي الأحدث
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
@@ -28,6 +28,8 @@ jobs:
         python3 -c "
         import os, google.generativeai as genai
         genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+        
+        # استدعاء الموديل الحديث والمستقر برمجياً بدون بادئات زائدة 👇
         model = genai.GenerativeModel('gemini-1.5-pro')
         
         system_instruction = '''
@@ -36,7 +38,7 @@ jobs:
         يجب أن يحتوي المخرج البرمجي على الملفات التالية مكتوبة بالكامل داخل السكربت:
         
         1. كود الإقلاع (Bootloader - boot.asm):
-           - مكتوب بلغة الأسمبلي (Assembly x86_64 / x86).
+           - مكتوب بلغة الأسمبلي (Assembly x86).
            - يقوم بتهيئة السجلات (Registers)، وإعداد جدول وصف المقطع العالمي (GDT).
            - الانتقال التام والآمن إلى النمط المحمي 32-بت (Protected Mode).
            - طباعة نص ترحيبي حرف بحرف على الشاشة يعرض اسم 'NAJD CONSOLE OS' عند أول ثانية تشغيل للحديد.
@@ -62,7 +64,7 @@ jobs:
         os.makedirs('src', exist_ok=True)
         with open('src/najd_os_core.c', 'w', encoding='utf-8') as f:
             f.write(response.text.strip())
-        print('✅ تم حقن كود نظام نجد المحشي والدسم بالكامل بنجاح وبدون اختصارات.')
+        print('✅ تم حقن كود نظام نجد المحشي بنجاح وبقوة الموديل الحديث.')
         "
 
     - name: 4️⃣ ترجمة وربط الأكواد المنتجة من الـ AI
@@ -70,8 +72,6 @@ jobs:
         mkdir -p iso_root/boot/grub
         echo "set timeout=0" > iso_root/boot/grub/grub.cfg
         echo "menuentry 'Najd Pure OS' { multiboot /boot/najd_kernel.bin }" >> iso_root/boot/grub/grub.cfg
-        
-        # تجميع الملفات البرمجية الصادرة من الذكاء الاصطناعي إلى صيغة التنفيذ المباشر للكونسول
         echo "Najd Complete Bare-Metal Executable Stack" > iso_root/boot/najd_kernel.bin
 
     - name: 5️⃣ صناعة ملف الـ ISO الحقيقي والنهائي للنظام
@@ -82,7 +82,6 @@ jobs:
           -no-emul-boot -boot-load-size 4 -boot-info-table \
           -o out/Najd_AI_Console_OS.iso \
           iso_root/ 2>/dev/null || touch out/Najd_AI_Console_OS.iso
-        print('✅ تم إغلاق ملف الـ ISO النهائي والدسم بنجاح.')
 
     - name: 6️⃣ رفع ملف نظام تشغيل نجد الخاص جاهزاً للحرق والتثبيت
       uses: actions/upload-artifact@v4
