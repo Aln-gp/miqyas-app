@@ -1,4 +1,4 @@
-name: Najd AI Anti-Glitch OS Builder v15.0
+name: Najd AI Stable OS Builder v19.0
 on:
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y nasm gcc-multilib binutils xorriso grub-pc-bin
 
-    - name: 3️⃣ تثبيت مكتبة الـ AI وإصلاح أخطاء المدلع نهائياً
+    - name: 3️⃣ إطلاق معالج الذكاء الاصطناعي المستقر (Gemini 1.5 Pro)
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
@@ -24,25 +24,24 @@ jobs:
         import os, re, google.generativeai as genai
         genai.configure(api_key=os.environ['GEMINI_API_KEY'])
         
+        # الاعتماد على الصيغة المستقرة والمباشرة للموديل 👇
         model = genai.GenerativeModel('gemini-1.5-pro')
         
         system_instruction = '''
-        اكتب كود C كامل ونظيف جداً مخصص للأنظمة (Bare-Metal C) لنظام تشغيل كونسول نجد للألعاب.
-        يجب أن يقوم الكود بتهيئة الشاشة الرسومية VGA 0xA0000 ورسم واجهة مستخدم (Dashboard) مخصصة بخلفية بنفسجية داكنة وحدود ذهبية، مقسمة لثلاثة أقسام: مكتبة الألعاب، المتجر، والإعدادات، مع كود أسمبلي بسيط للإقلاع.
-        اكتب الأكواد البرمجية مباشرة وبدون أي مقدمات أو شروحات.
+        Write a minimal bare-metal C code for an x86 OS kernel. 
+        The code should initialize video memory at 0xA0000 and clear the screen to purple color.
+        Output ONLY the pure source code, no markdown, no explanations.
         '''
         
         response = model.generate_content(system_instruction)
-        raw_text = response.text.strip()
-        
-        # تنظيف الكود أوتوماتيكياً من أي علامات ماركدوان قد يضعها الـ AI بالخطأ لضمان عدم فشل السيرفر 👇
-        clean_code = re.sub(r'```[a-zA-Z]*', '', raw_text)
-        clean_code = clean_code.replace('```', '')
+        clean_code = re.sub(r'```[a-zA-Z]*', '', response.text.strip())
+        clean_code = clean_code.replace('
+```', '')
         
         os.makedirs('src', exist_ok=True)
         with open('src/najd_os_core.c', 'w', encoding='utf-8') as f:
             f.write(clean_code.strip())
-        print('✅ تم تنظيف وحقن كود نظام نجد بنجاح رغماً عن أنف المدلع!')
+        print('✅ تم بناء وتنظيف كود نجد بنجاح بقوة المحرك المستقر Gemini 1.5 Pro!')
         "
 
     - name: 4️⃣ ترجمة وربط الأكواد المنتجة
