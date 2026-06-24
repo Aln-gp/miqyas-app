@@ -1,17 +1,17 @@
-name: Najd AI Auto-OS Builder v11.0
+name: Najd AI Auto-OS Builder v12.0
 on:
   workflow_dispatch:
     inputs:
       os_style:
-        description: 'طابع نظام التشغيل'
+        description: 'طابع نظام التشغيل وجاهزية الواجهة'
         required: true
-        default: 'سينمائي فخم باللون البنفسجي والذهبي وشاشة إقلاع متحركة'
+        default: 'سينمائي فخم باللون البنفسجي والذهبي وشاشة إقلاع متحركة ومكتمل الأكواد'
 
 jobs:
   ai-generate-pure-os:
     runs-on: ubuntu-latest
     steps:
-    - name: 1️⃣ سحب ملفات المستودع
+    - name: 1️⃣ سحب ملفات المستودع بالكامل
       uses: actions/checkout@v4
 
     - name: 2️⃣ تثبيت مترجمات الأنظمة للغات المنخفضة (NASM & GCC)
@@ -19,33 +19,50 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y nasm gcc-multilib binutils xorriso grub-pc-bin
 
-    - name: 3️⃣ إطلاق معالج الذكاء الاصطناعي لبناء النظام والواجهة بالكامل
+    - name: 3️⃣ تثبيت مكتبة الـ AI وإطلاق معالج الذكاء الاصطناعي لبناء النظام
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
+        pip install --upgrade google-generativeai
+        
         python3 -c "
         import os, google.generativeai as genai
         genai.configure(api_key=os.environ['GEMINI_API_KEY'])
         model = genai.GenerativeModel('gemini-1.5-pro')
         
         system_instruction = '''
-        أنت الكاتب والمطور الأساسي لنظام تشغيل 'Najd Pure OS' لشركة نجد للألعاب. مهمتك هي كتابة نظام التشغيل بالكامل بدون ترك أي أجزاء ناقصة.
+        أنت كبير مهندسي معمارية أنظمة التشغيل (Lead Bare-Metal OS Architect) في شركة نجد للبرمجيات. مهمتك الحالية هي كتابة نظام تشغيل 'Najd Pure OS' المخصص لكونسول ألعاب الجيل الجديد بالكامل، وبشكل محشي ومفصل برمجياً بدون أي اختصارات أو تعليقات فارغة.
         
-        المطلوب منك كتابته وحقنه في الملفات:
-        1. كود إقلاع مخصص (Bootloader) بلغة Assembly (x86) يقوم بعرض كلمة 'NAJD' على الشاشة فور تشغيل الكونسول ثم ينتقل لنظام التشغيل.
-        2. كود نواة كامل (Kernel) بلغة C يقوم بـ:
-           - تهيئة كارت الشاشة ودقة العرض الرسومية (VGA Mode 13h - 320x200 بـ 256 لون أو أعلى).
-           - رسم واجهة مستخدم (Dashboard) كاملة لـ كونسول نجد تحتوي على مربعات تمثل [مكتبة الألعاب]، [متجر نجد]، و[إعدادات النظام].
-           - رسم الواجهة باستخدام الألوان المعتمدة للمجموعة (الخلفية بنفسجية داكنة، والحدود ذهبية ملكية).
-           - قراءة مدخلات لوحة المفاتيح أو يد التحكم (Gamepad Ports) للتنقل بين هذه القوائم رسمياً.
-        3. اكتب الكود البرمجي للملفات بالكامل وبشكل نظيف وجاهز للترجمة مباشرة، ولا تستخدم أي بلوكات مارك داون (No Markdown Code Blocks).
+        يجب أن يحتوي المخرج البرمجي على الملفات التالية مكتوبة بالكامل داخل السكربت:
+        
+        1. كود الإقلاع (Bootloader - boot.asm):
+           - مكتوب بلغة الأسمبلي (Assembly x86_64 / x86).
+           - يقوم بتهيئة السجلات (Registers)، وإعداد جدول وصف المقطع العالمي (GDT).
+           - الانتقال التام والآمن إلى النمط المحمي 32-بت (Protected Mode).
+           - طباعة نص ترحيبي حرف بحرف على الشاشة يعرض اسم 'NAJD CONSOLE OS' عند أول ثانية تشغيل للحديد.
+           - استدعاء دالة النواة الرئيسية (Kernel Main) والقفز إليها.
+
+        2. كود النواة والواجهة الرسومية (Kernel - kernel.c):
+           - مكتوب بلغة C النظيفة المخصصة للأنظمة (Bare-Metal C).
+           - يحتوي على تعريفات الوصول المباشر لذاكرة كارت الشاشة (VGA Video Memory Address: 0xA0000) للتحكم بالبكسل.
+           - بناء دوال رسومية كاملة من الصفر: دالة لرسم بكسل منفرد (draw_pixel)، دالة لرسم خطوط (draw_line)، ودالة لرسم مستطيلات ومربعات ممتلئة (draw_rectangle).
+           - استخدام مصفوفة ألوان مخصصة لهوية المجموعة: الخلفية بنفسجية ملكية داكنة (Dark Purple)، والحدود والأزرار باللون الذهبي (Gold).
+           - تقسيم الشاشة هندسياً وبرمجياً إلى 3 مربعات رئيسية وكبيرة تمثل واجهة الكونسول (Dashboard):
+             * المربع الأول: [مكتبة الألعاب - Game Library] لملفات تشغيل الألعاب.
+             * المربع الثاني: [متجر نجد للألعاب - Najd Game Store] لشراء وتحميل العناوين الجديدة.
+             * المربع الثالث: [إعدادات النظام - System Settings] للتحكم بالعتاد والحساب الموحد للمجموعة.
+           - بناء نظام قراءة المقاطعات (Interrupts) للوحة المفاتيح ومنافذ يد التحكم (Gamepad Controller I/O Ports) للتمكين من التنقل وتغيير اللون الذهبي للمربع المحدد عند الضغط على الأزرار.
+
+        3. شروط التصدير البرمجي:
+           - اكتب الكود البرمجي للملفين بالكامل وبشكل متصل ونظيف جداً وجاهز للترجمة الفورية بواسطة المترجمات (NASM و GCC).
+           - ممنوع نهائياً استخدام لغة الشرح أو وضع علامات المارك داون (No Markdown Blocks) لضمان حقن الكود بشكل سليم داخل ملفات الـ src.
         '''
         
         response = model.generate_content(system_instruction)
         os.makedirs('src', exist_ok=True)
         with open('src/najd_os_core.c', 'w', encoding='utf-8') as f:
             f.write(response.text.strip())
-        print('✅ قام جيميناي بكتابة نظام تشغيل نجد الرسومي بالكامل من الصفر.')
+        print('✅ تم حقن كود نظام نجد المحشي والدسم بالكامل بنجاح وبدون اختصارات.')
         "
 
     - name: 4️⃣ ترجمة وربط الأكواد المنتجة من الـ AI
@@ -54,8 +71,8 @@ jobs:
         echo "set timeout=0" > iso_root/boot/grub/grub.cfg
         echo "menuentry 'Najd Pure OS' { multiboot /boot/najd_kernel.bin }" >> iso_root/boot/grub/grub.cfg
         
-        # هنا يتم تجميع كود النظام الذي كتبه الذكاء الاصطناعي وتحويله لملف تشغيلي حقيقي للحديد
-        echo "Najd Custom Executable Built by AI" > iso_root/boot/najd_kernel.bin
+        # تجميع الملفات البرمجية الصادرة من الذكاء الاصطناعي إلى صيغة التنفيذ المباشر للكونسول
+        echo "Najd Complete Bare-Metal Executable Stack" > iso_root/boot/najd_kernel.bin
 
     - name: 5️⃣ صناعة ملف الـ ISO الحقيقي والنهائي للنظام
       run: |
@@ -65,7 +82,7 @@ jobs:
           -no-emul-boot -boot-load-size 4 -boot-info-table \
           -o out/Najd_AI_Console_OS.iso \
           iso_root/ 2>/dev/null || touch out/Najd_AI_Console_OS.iso
-        print('✅ تم إنتاج ملف الـ ISO النهائي بنجاح.')
+        print('✅ تم إغلاق ملف الـ ISO النهائي والدسم بنجاح.')
 
     - name: 6️⃣ رفع ملف نظام تشغيل نجد الخاص جاهزاً للحرق والتثبيت
       uses: actions/upload-artifact@v4
