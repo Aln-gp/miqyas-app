@@ -16,15 +16,28 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # بدلاً من تثبيت الأداة من رابط قد يكون معطلاً، سنبني المشروع مباشرة
-    # Cosmos Kernel تعتمد على المراجع (Packages) الموجودة في ملف المشروع .csproj
-    - name: Build Najd OS
+    - name: Restore and Build
       run: |
         dotnet restore NajdOS.sln
         dotnet build NajdOS.sln --configuration Release
 
-    - name: Upload ISO
+    - name: Locate and Upload ISO
+      run: |
+        # البحث عن ملف الـ ISO في كل مكان
+        $isoPath = Get-ChildItem -Path . -Filter *.iso -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        
+        if ($isoPath) {
+          echo "تم العثور على الملف في: $isoPath"
+          echo "ISO_PATH=$isoPath" >> $env:GITHUB_ENV
+        } else {
+          echo "خطأ: لم يتم العثور على ملف ISO!"
+          exit 1
+        }
+
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-ISO
-        path: NajdOS/bin/Release/net8.0/NajdOS.iso
+        path: ${{ env.GITHUB_ENV.ISO_PATH }}
+        if-no-files-found: error
+        
