@@ -16,13 +16,10 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Configure NuGet
-      run: |
-        dotnet nuget add source https://www.myget.org/F/cosmos/api/v3/index.json --name Cosmos --configfile NuGet.config
-
+    # تم حذف أمر الإضافة اليدوية لتجنب تعارض الأسماء
     - name: Install Cosmos Build Tools
       run: |
-        dotnet tool install -g Cosmos.Build --add-source https://www.myget.org/F/cosmos/api/v3/index.json
+        dotnet tool install -g Cosmos.Build
 
     - name: Build Najd OS
       run: |
@@ -33,4 +30,3 @@ jobs:
       with:
         name: NajdOS-ISO
         path: NajdOS/bin/Release/net8.0/NajdOS.iso
-        
