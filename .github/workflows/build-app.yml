@@ -1,68 +1,357 @@
-name: Najd AI Certified OS Builder v20.0
-on:
-  workflow_dispatch:
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
-jobs:
-  ai-generate-pure-os:
-    runs-on: ubuntu-latest
-    steps:
-    - name: 1️⃣ سحب ملفات المستودع بالكامل
-      uses: actions/checkout@v4
+namespace Najd.Heritage.Core
+{
+    // تعريف أنواع اللعب الشعبي المتاحة في اللعبة
+    public enum DanceType
+    {
+        Qazouei,
+        KhotwaSouthern,
+        MajrorAlTaif,
+        OtaybahAndZir,
+        SaudiArdah
+    }
 
-    - name: 2️⃣ تثبيت مترجمات الأنظمة للغات المنخفضة (NASM & GCC)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y nasm gcc-multilib binutils xorriso grub-pc-bin
+    // تقييم دقة الحركة بالنسبة للإيقاع
+    public enum AccuracyRating
+    {
+        Perfect,
+        Great,
+        Good,
+        Miss
+    }
 
-    - name: 3️⃣ إطلاق معالج الذكاء الاصطناعي المعتمد (Gemini 1.5 Pro)
-      env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      run: |
-        pip install --upgrade google-generativeai
+    // بنية بيانات لتخزين إحداثيات مفاصل الكينكت في الفضاء ثلاثي الأبعاد
+    [System.Serializable]
+    public struct KinectJointData
+    {
+        public Vector3 Head;
+        public Vector3 ShoulderCenter;
+        public Vector3 ShoulderLeft;
+        public Vector3 ShoulderRight;
+        public Vector3 Spine;
+        public Vector3 HipCenter;
+        public Vector3 HipLeft;
+        public Vector3 HipRight;
+        public Vector3 KneeLeft;
+        public Vector3 KneeRight;
+        public Vector3 AnkleLeft;
+        public Vector3 AnkleRight;
+        public Vector3 FootLeft;
+        public Vector3 FootRight;
+        public Vector3 ElbowLeft;
+        public Vector3 ElbowRight;
+        public Vector3 WristLeft;
+        public Vector3 WristRight;
+        public Vector3 HandLeft;
+        public Vector3 HandRight;
+    }
+
+    // ملفات الإعدادات والوزن الإيقاعي لكل رقصة شعبية
+    [System.Serializable]
+    public class DanceProfile
+    {
+        public DanceType danceType;
+        public string danceNameArabic;
+        public string shilatAudioPath;
+        public float targetBPM; // الضربات في الدقيقة لضبط الوزن الإيقاعي
+        public float stepThreshold; // الحساسية المطلوبة لقراءة الكاميرا
+        public float duration;
+    }
+
+    public class NajdKinectGrandEngine : MonoBehaviour
+    {
+        [Header("Najd Soft Global Configuration")]
+        public string companyName = "Najd Soft for Games";
+        public string gameVersion = "v26.0 Premium Edition";
         
-        python3 -c "
-        import os, re, google.generativeai as genai
-        genai.configure(api_key=os.environ['GEMINI_API_KEY'])
-        
-        # الاسم البرمجي المضمون والمحدث للسيرفرات
-        model = genai.GenerativeModel('gemini-1.5-pro')
-        
-        system_instruction = '''
-        Write a minimal bare-metal C code for an x86 OS kernel. 
-        The code should initialize video memory at 0xA0000 and clear the screen to purple color.
-        Output ONLY the pure source code, no markdown, no explanations.
-        '''
-        
-        response = model.generate_content(system_instruction)
-        clean_code = re.sub(r'```[a-zA-Z]*', '', response.text.strip())
-        clean_code = clean_code.replace('
-```', '')
-        
-        os.makedirs('src', exist_ok=True)
-        with open('src/najd_os_core.c', 'w', encoding='utf-8') as f:
-            f.write(clean_code.strip())
-        print('✅ تم بناء وتنظيف كود نجد بنجاح بقوة المحرك المعتمد!')
-        "
+        [Header("Dance Configuration Profiles")]
+        public DanceProfile currentProfile;
+        private Dictionary<DanceType, DanceProfile> danceDatabase = new Dictionary<DanceType, DanceProfile>();
 
-    - name: 4️⃣ ترجمة وربط الأكواد المنتجة
-      run: |
-        mkdir -p iso_root/boot/grub
-        echo "set timeout=0" > iso_root/boot/grub/grub.cfg
-        echo "menuentry 'Najd Pure OS' { multiboot /boot/najd_kernel.bin }" >> iso_root/boot/grub/grub.cfg
-        echo "Najd Complete Bare-Metal Executable Stack" > iso_root/boot/najd_kernel.bin
+        [Header("Audio Engine Systems")]
+        public AudioSource shilatAudioSource;
+        public AudioSource sfxAudioSource;
+        public AudioClip perfectSfx;
+        public AudioClip missSfx;
 
-    - name: 5️⃣ صناعة ملف الـ ISO الحقيقي والنهائي للنظام
-      run: |
-        mkdir -p out
-        xorriso -as mkisofs \
-          -R -b boot/grub/stage2_eltorito \
-          -no-emul-boot -boot-load-size 4 -boot-info-table \
-          -o out/Najd_AI_Console_OS.iso \
-          iso_root/ 2>/dev/null || touch out/Najd_AI_Console_OS.iso
+        [Header("UI Display Components")]
+        public Text txtDanceName;
+        public Text txtInstructionPrompt;
+        public Text txtScoreDisplay;
+        public Text txtComboDisplay;
+        public Text txtAccuracyFeedback;
+        public Image imgAccuracyIndicator;
+        public GameObject panelTutorial;
 
-    - name: 6️⃣ رفع ملف نظام تشغيل نجد الخاص جاهزاً للحرق والتثبيت
-      uses: actions/upload-artifact@v4
-      with:
-        name: Najd-AI-Custom-OS-ISO
-        path: out/Najd_AI_Console_OS.iso
+        [Header("Kinect Live Tracking Data")]
+        public KinectJointData liveSkeleton;
+        private bool isKinectInitialized = false;
+        private bool isTutorialModeActive = true;
+
+        [Header("Scoring Matrix Registers")]
+        public int currentScore = 0;
+        public int currentCombo = 0;
+        public int maxCombo = 0;
+        public float scoreMultiplier = 1.0f;
+
+        // متغيرات التتبع والتدريب الخاصة بالرقصات
+        private float lastBeatTime = 0f;
+        private float beatInterval = 0f;
+        private int tutorialStepIndex = 0;
+        private float stateTimer = 0f;
+
+        void Awake()
+        {
+            InitializeNajdDatabase();
+        }
+
+        void Start()
+        {
+            Debug.Log("🎮 مرحباً بك في محرك نجد للألعاب التراثية السعودية - النسخة المعتمدة " + gameVersion);
+            InitializeKinectSensor();
+            InitializeAudioPipeline();
+            SelectDance(DanceType.Qazouei); // البدء بالقزوعي تلقائياً كالعادة
+        }
+
+        private void InitializeNajdDatabase()
+        {
+            // 1. قاعدة بيانات لعب القزوعي
+            DanceProfile qazouei = new DanceProfile();
+            qazouei.danceType = DanceType.Qazouei;
+            qazouei.danceNameArabic = "لعب القزوعي الفخم";
+            qazouei.shilatAudioPath = "sounds/qazouei.mp3";
+            qazouei.targetBPM = 115.0f;
+            qazouei.stepThreshold = 0.35f;
+            qazouei.duration = 180.0f;
+            danceDatabase.Add(DanceType.Qazouei, qazouei);
+
+            // 2. قاعدة بيانات الخطوة الجنوبية
+            DanceProfile khotwa = new DanceProfile();
+            khotwa.danceType = DanceType.KhotwaSouthern;
+            khotwa.danceNameArabic = "الخطوة الجنوبية المتناغمة";
+            khotwa.shilatAudioPath = "sounds/khotwa.mp3";
+            khotwa.targetBPM = 85.0f;
+            khotwa.stepThreshold = 0.28f;
+            khotwa.duration = 210.0f;
+            danceDatabase.Add(DanceType.KhotwaSouthern, khotwa);
+
+            // 3. قاعدة بيانات مجرور الطائف
+            DanceProfile majror = new DanceProfile();
+            majror.danceType = DanceType.MajrorAlTaif;
+            majror.danceNameArabic = "مجرور الطائف والحجاز";
+            majror.shilatAudioPath = "sounds/majror.mp3";
+            majror.targetBPM = 130.0f;
+            majror.stepThreshold = 0.40f;
+            majror.duration = 240.0f;
+            danceDatabase.Add(DanceType.MajrorAlTaif, majror);
+
+            // 4. قاعدة بيانات لعب عتيبة والزير
+            DanceProfile otaybah = new DanceProfile();
+            otaybah.danceType = DanceType.OtaybahAndZir;
+            otaybah.danceNameArabic = "لعب عتيبة والزير الأصيل";
+            otaybah.shilatAudioPath = "sounds/otaybah.mp3";
+            otaybah.targetBPM = 120.0f;
+            otaybah.stepThreshold = 0.30f;
+            otaybah.duration = 195.0f;
+            danceDatabase.Add(DanceType.OtaybahAndZir, otaybah);
+
+            // 5. قاعدة بيانات العرضة السعودية
+            DanceProfile ardah = new DanceProfile();
+            ardah.danceType = DanceType.SaudiArdah;
+            ardah.danceNameArabic = "العرضة السعودية الملكية";
+            ardah.shilatAudioPath = "sounds/ardah.mp3";
+            ardah.targetBPM = 90.0f;
+            ardah.stepThreshold = 0.50f;
+            ardah.duration = 300.0f;
+            danceDatabase.Add(DanceType.SaudiArdah, ardah);
+        }
+
+        private void InitializeKinectSensor()
+        {
+            Debug.Log("📡 جاري الاتصال بحساس كاميرا Xbox 360 Kinect وتفعيل Skeleton Stream...");
+            // محاكاة الاتصال بكاميرا الكينكت الحقيقية عبر الـ SDK
+            isKinectInitialized = true;
+            Debug.Log("✅ تم تفعيل الكاميرا وتجهيز نظام تتبع المفاصل ثلاثي الأبعاد بنجاح!");
+        }
+
+        private void InitializeAudioPipeline()
+        {
+            if (shilatAudioSource == null)
+            {
+                shilatAudioSource = gameObject.AddComponent<AudioSource>();
+            }
+            if (sfxAudioSource == null)
+            {
+                sfxAudioSource = gameObject.AddComponent<AudioSource>();
+            }
+            shilatAudioSource.loop = true;
+            shilatAudioSource.playOnAwake = false;
+        }
+
+        public void SelectDance(DanceType selectedType)
+        {
+            if (danceDatabase.ContainsKey(selectedType))
+            {
+                currentProfile = danceDatabase[selectedType];
+                txtDanceName.text = currentProfile.danceNameArabic;
+                beatInterval = 60.0f / currentProfile.targetBPM;
+                lastBeatTime = Time.time;
+                tutorialStepIndex = 0;
+                stateTimer = 0f;
+                
+                LoadShilaAudio(currentProfile.shilatAudioPath);
+                
+                if (isTutorialModeActive)
+                {
+                    ActivateTutorialMode();
+                }
+                else
+                {
+                    StartActualGameplay();
+                }
+            }
+        }
+
+        private void LoadShilaAudio(string path)
+        {
+            Debug.Log("🎵 جاري سحب الشيلة الحماسية المخصصة من المسار: " + path);
+            AudioClip shila = Resources.Load<AudioClip>(path);
+            if (shila != null)
+            {
+                shilatAudioSource.clip = shila;
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ تنبيه: ملف الشيلة لم يتم العثور عليه في " + path + " تأكد من رفع الملف داخل مجلد sounds في جيتهاب بصيغة سليمة!");
+            }
+        }
+
+        private void ActivateTutorialMode()
+        {
+            isTutorialModeActive = true;
+            panelTutorial.SetActive(true);
+            currentScore = 0;
+            currentCombo = 0;
+            scoreMultiplier = 1.0f;
+            UpdateUIDisplay();
+            Debug.Log("📘 تفعيل طور التعليم والتدريب خطوة بخطوة للرقصة: " + currentProfile.danceNameArabic);
+        }
+
+        private void StartActualGameplay()
+        {
+            isTutorialModeActive = false;
+            panelTutorial.SetActive(false);
+            shilatAudioSource.Play();
+            lastBeatTime = Time.time;
+            Debug.Log("🚀 بدء الميدان الفعلي وحساب النقاط الحية للشيلات المدمجة!");
+        }
+
+        void Update()
+        {
+            if (!isKinectInitialized) return;
+
+            UpdateKinectSimulationData();
+
+            if (isTutorialModeActive)
+            {
+                RunTutorialEngineStateMachine();
+            }
+            else
+            {
+                RunLiveGameplayTrackingEngine();
+            }
+        }
+
+        private void RunTutorialEngineStateMachine()
+        {
+            stateTimer += Time.deltaTime;
+
+            switch (currentProfile.danceType)
+            {
+                case DanceType.Qazouei:
+                    ExecuteQazoueiTutorial();
+                    break;
+                case DanceType.KhotwaSouthern:
+                    ExecuteKhotwaTutorial();
+                    break;
+                case DanceType.MajrorAlTaif:
+                    ExecuteMajrorTutorial();
+                    break;
+                case DanceType.OtaybahAndZir:
+                    ExecuteOtaybahTutorial();
+                    break;
+                case DanceType.SaudiArdah:
+                    ExecuteArdahTutorial();
+                    break;
+            }
+        }
+
+        // ==================== طور تعليم القزوعي ====================
+        private void ExecuteQazoueiTutorial()
+        {
+            if (tutorialStepIndex == 0)
+            {
+                txtInstructionPrompt.text = "مرحباً بك في تدريب القزوعي. الخطوة 1: قف باستقامة واجعل يديك متطابقتين للأمام.";
+                float handDistance = Vector3.Distance(liveSkeleton.HandLeft, liveSkeleton.HandRight);
+                if (handDistance < 0.3f && stateTimer > 4.0f)
+                {
+                    AdvanceTutorialStep();
+                }
+            }
+            else if (tutorialStepIndex == 1)
+            {
+                txtInstructionPrompt.text = "الخطوة 2: ارفع قدمك اليمنى للأعلى استعداداً لضرب الأرض!";
+                float kneeAngle = CalculateJointAngle(liveSkeleton.HipRight, liveSkeleton.KneeRight, liveSkeleton.AnkleRight);
+                if (kneeAngle < 140.0f || stateTimer > 4.0f)
+                {
+                    AdvanceTutorialStep();
+                }
+            }
+            else if (tutorialStepIndex == 2)
+            {
+                txtInstructionPrompt.text = "الخطوة 3: اضرب الأرض بقوة بكلتا قدميك مع ريتم الصف المتزامن!";
+                if (liveSkeleton.FootRight.y < 0.1f && stateTimer > 4.0f)
+                {
+                    Debug.Log("👏 كفو يا بطل! أتقنت وزنية القزوعي. جاهز للميدان!");
+                    StartActualGameplay();
+                }
+            }
+        }
+
+        // ==================== طور تعليم الخطوة الجنوبية ====================
+        private void ExecuteKhotwaTutorial()
+        {
+            if (tutorialStepIndex == 0)
+            {
+                txtInstructionPrompt.text = "مرحباً بك في تدريب الخطوة الجنوبية. الخطوة 1: تراجع خطوة هادئة للخلف بالقدم اليسرى.";
+                float stepDepth = liveSkeleton.FootLeft.z - liveSkeleton.HipCenter.z;
+                if (stepDepth < -0.4f || stateTimer > 4.0f)
+                {
+                    AdvanceTutorialStep();
+                }
+            }
+            else if (tutorialStepIndex == 1)
+            {
+                txtInstructionPrompt.text = "الخطوة 2: انحنِ بنعومة (خضوع هادئ) عند سماع الكسرة مع ثني الركبتين.";
+                float hipHeight = liveSkeleton.HipCenter.y;
+                if (hipHeight < 0.85f || stateTimer > 4.0f)
+                {
+                    AdvanceTutorialStep();
+                }
+            }
+            else if (tutorialStepIndex == 2)
+            {
+                txtInstructionPrompt.text = "الخطوة 3: تقدم خطوة للأمام وكرر الريتم الهادئ بانتظام.";
+                if (stateTimer > 4.0f)
+                {
+                    Debug.Log("🕺 ممتاز! ريتم الخطوة الجنوبية مضبوط. دعنا نبدأ الشيلة!");
+                    StartActualGameplay();
+                }
+            }
+        }
         
