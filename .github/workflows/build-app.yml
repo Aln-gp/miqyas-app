@@ -16,13 +16,11 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    # تم حذف أمر الإضافة اليدوية لتجنب تعارض الأسماء
-    - name: Install Cosmos Build Tools
-      run: |
-        dotnet tool install -g Cosmos.Build
-
+    # بدلاً من تثبيت الأداة من رابط قد يكون معطلاً، سنبني المشروع مباشرة
+    # Cosmos Kernel تعتمد على المراجع (Packages) الموجودة في ملف المشروع .csproj
     - name: Build Najd OS
       run: |
+        dotnet restore NajdOS.sln
         dotnet build NajdOS.sln --configuration Release
 
     - name: Upload ISO
