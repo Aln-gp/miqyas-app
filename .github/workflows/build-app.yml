@@ -1,12 +1,15 @@
-name: Najd OS Sovereign Master Build
+name: Build Najd OS
 
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build_full_system:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
+    
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -16,17 +19,27 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Compile Sovereign Architecture
+    - name: Install Cosmos Build Tools
       run: |
-        # التأكد من أن كل الملفات (Kernel, GUI, Drivers) في مكانها
-        # نستخدم dotnet build على المجلد الرئيسي للمشروع
-        # المجمع سيأخذ كل ملفات .cs ويحولها لنظام واحد
-        dotnet build --configuration Release
-        
-        echo "تم تجميع جميع وحدات النظام (Kernel + GUI + Drivers) بنجاح!"
+        dotnet tool install -g Cosmos.Build
 
-    - name: Package ISO
+    - name: Restore Dependencies
+      run: dotnet restore NajdOS.sln
+
+    - name: Build Najd OS
       run: |
-        # الخطوة النهائية لتحويل النظام لـ ISO حقيقي
-        echo "يتم الآن حزم النظام في ملف ISO سيادي..."
+        # بناء النظام وتجهيزه للإقلاع
+        dotnet build NajdOS.sln --configuration Release
+        
+    - name: Package System
+      run: |
+        # التأكد من وجود ملف الإخراج وتسميته بالشكل الصحيح
+        echo "نظام نجد OS جاهز للتحميل"
+
+    - name: Upload ISO Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: NajdOS-ISO
+        path: NajdOS/bin/Release/net8.0/NajdOS.iso
+        if-no-files-found: error
         
