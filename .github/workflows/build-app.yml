@@ -24,16 +24,13 @@ jobs:
     - name: Move ISO to Custom Folder
       shell: powershell
       run: |
-        # إنشاء المجلد الثابت والمحدد اللي تبغاه داخل مشروعك
-        mkdir -p NajdOS/NajdOS_Output
-        
-        # التأكد من وجود ملف الـ ISO في مساره الأصلي الشغال ونقله للمجلد الجديد
+        New-Item -ItemType Directory -Force -Path "NajdOS/NajdOS_Output"
         $sourcePath = "NajdOS/bin/Release/net8.0/NajdOS.iso"
         if (Test-Path $sourcePath) {
             Move-Item -Path $sourcePath -Destination "NajdOS/NajdOS_Output/NajdOS_New.iso" -Force
-            Write-Output "تم نقل ملف الـ ISO الجديد بنجاح إلى المجلد المحدد داخل المشروع!"
+            Write-Output "ISO moved successfully!"
         } else {
-            Write-Error "لم يتم العثور على ملف الـ ISO في المسار الافتراضي!"
+            Write-Error "ISO file not found!"
             exit 1
         }
 
@@ -41,7 +38,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
-        # رفع الملف من المجلد الجديد المحدد داخل المشروع
         path: NajdOS/NajdOS_Output/
         if-no-files-found: error
         
