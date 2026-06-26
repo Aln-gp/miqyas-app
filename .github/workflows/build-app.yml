@@ -29,9 +29,9 @@ jobs:
 
     - name: Get Dependencies and Inject App Code
       run: |
-        # التأكد من تهيئة المشروع لكل المنصات إذا لم تكن المجلدات موجودة
+        # تهيئة المشروع باسم حزمة صحيح متوافق مع شروط لغة Dart (باستخدام الشرطة السفلية)
         if [ ! -d "android" ] || [ ! -d "ios" ] || [ ! -d "web" ] || [ ! -d "macos" ]; then
-          flutter create --platforms=android,ios,macos,web .
+          flutter create --platforms=android,ios,macos,web --project-name=miqyas_app .
         fi
         flutter pub get
         flutter pub add http || true
@@ -403,5 +403,4 @@ jobs:
                         );
                       },
                     ),
-                  ),
-                  if (_is
+    
