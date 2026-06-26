@@ -15,18 +15,20 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+        # هنا الحل: نسجل خادم الحزم لـ Cosmos كخادم رسمي داخل الـ Runner نفسه أثناء التثبيت
+        source-url: https://www.myget.org/F/cosmos/api/v3/index.json
 
-    - name: Clear Cache and Restore Direct
-      # تنظيف الكاش الغبي حق السيرفر وتمرير المصادر مباشرة في الأمر بدون ملف config
+    - name: Clear Cache and Force Restore
       run: |
         dotnet nuget locals all --clear
         cd NajdOS
-        dotnet restore NajdOS.csproj --source "https://api.nuget.org/v3/index.json" --source "https://www.myget.org/F/cosmos/api/v3/index.json"
+        # نأمر الـ Restore بتجاهل أي ملفات إعدادات قديمة في المستودع والاعتماد على السيرفر فقط
+        dotnet restore NajdOS.csproj --no-cache --force
 
     - name: Compile and Build New ISO
       run: |
         cd NajdOS
-        # بناء نظام نجد الجديد بالكامل (الواجهة والملفات) وحفظ الـ ISO في مجلد NajdOS_Builds
+        # بناء النظام الجديد كاملاً مع الواجهة والملفات وحفظ الـ ISO في مجلد محدد
         dotnet build NajdOS.csproj --configuration Release --output ../NajdOS_Builds/
 
     - name: Upload Integrated ISO
