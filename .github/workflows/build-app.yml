@@ -15,11 +15,11 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-
+        
     - name: Restore and Build
       run: |
         dotnet restore NajdOS.sln
-        dotnet build NajdOS.sln --configuration Release
+        dotnet build NajdOS.sln --configuration Release -v normal
 
     - name: Locate and Upload ISO
       run: |
