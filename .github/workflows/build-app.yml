@@ -1,4 +1,4 @@
-name: Build Najd OS Integrated System
+name: Build Najd OS
 
 on:
   push:
@@ -16,32 +16,32 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Build Najd OS (Local Workflow)
-      # هذا هو الأمر المحلي المباشر اللي ضبط معنا في السيرفر
+    - name: Build Najd OS
       run: |
-        cd NajdOS
-        dotnet build NajdOS.csproj --configuration Release
+        dotnet restore NajdOS.sln
+        dotnet build NajdOS.sln --configuration Release
 
-    - name: Collect and Route ISO to Project Folder
+    - name: Move ISO to Custom Folder
       shell: powershell
       run: |
-        # إنشاء المجلد الثابت والمحدد داخل مشروعك لحفظ النظام الجديد
+        # إنشاء المجلد الثابت والمحدد اللي تبغاه داخل مشروعك
         mkdir -p NajdOS/NajdOS_Output
         
-        # البحث عن ملف الـ ISO الجديد اللي بناه السيرفر محلياً ونقله للمجلد المخصص
-        $isoFile = Get-ChildItem -Path . -Filter *.iso -Recurse | Select-Object -First 1
-        if ($isoFile) {
-            Move-Item -Path $isoFile.FullName -Destination "NajdOS/NajdOS_Output/NajdOS_New.iso" -Force
-            Write-Output "تم حفظ ونقل الـ ISO الجديد بنجاح داخل مجلد المشروع!"
+        # التأكد من وجود ملف الـ ISO في مساره الأصلي الشغال ونقله للمجلد الجديد
+        $sourcePath = "NajdOS/bin/Release/net8.0/NajdOS.iso"
+        if (Test-Path $sourcePath) {
+            Move-Item -Path $sourcePath -Destination "NajdOS/NajdOS_Output/NajdOS_New.iso" -Force
+            Write-Output "تم نقل ملف الـ ISO الجديد بنجاح إلى المجلد المحدد داخل المشروع!"
         } else {
-            Write-Error "لم يتم العثور على ملف الـ ISO الجديد!"
+            Write-Error "لم يتم العثور على ملف الـ ISO في المسار الافتراضي!"
             exit 1
         }
 
-    - name: Upload Integrated ISO
+    - name: Upload ISO
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
+        # رفع الملف من المجلد الجديد المحدد داخل المشروع
         path: NajdOS/NajdOS_Output/
         if-no-files-found: error
         
