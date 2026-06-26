@@ -16,22 +16,32 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Standard Local Restore
-      # استعادة عادية ومحلية تماماً باستخدام المستودع الافتراضي للسيرفر
+    - name: Build Najd OS (Local Workflow)
+      # هذا هو الأمر المحلي المباشر اللي ضبط معنا في السيرفر
       run: |
         cd NajdOS
-        dotnet restore NajdOS.csproj
+        dotnet build NajdOS.csproj --configuration Release
 
-    - name: Compile and Build New ISO
-      # بناء النظام الجديد بالكامل وتوجيه ملف الـ ISO إلى مجلد مخصص اسمه NajdOS_Builds برا
+    - name: Collect and Route ISO to Project Folder
+      shell: powershell
       run: |
-        cd NajdOS
-        dotnet build NajdOS.csproj --configuration Release --output ../NajdOS_Builds/
+        # إنشاء المجلد الثابت والمحدد داخل مشروعك لحفظ النظام الجديد
+        mkdir -p NajdOS/NajdOS_Output
+        
+        # البحث عن ملف الـ ISO الجديد اللي بناه السيرفر محلياً ونقله للمجلد المخصص
+        $isoFile = Get-ChildItem -Path . -Filter *.iso -Recurse | Select-Object -First 1
+        if ($isoFile) {
+            Move-Item -Path $isoFile.FullName -Destination "NajdOS/NajdOS_Output/NajdOS_New.iso" -Force
+            Write-Output "تم حفظ ونقل الـ ISO الجديد بنجاح داخل مجلد المشروع!"
+        } else {
+            Write-Error "لم يتم العثور على ملف الـ ISO الجديد!"
+            exit 1
+        }
 
     - name: Upload Integrated ISO
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
-        path: NajdOS_Builds/
+        path: NajdOS/NajdOS_Output/
         if-no-files-found: error
         
