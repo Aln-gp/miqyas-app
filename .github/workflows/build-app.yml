@@ -15,20 +15,17 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-        # هنا الحل: نسجل خادم الحزم لـ Cosmos كخادم رسمي داخل الـ Runner نفسه أثناء التثبيت
-        source-url: https://www.myget.org/F/cosmos/api/v3/index.json
 
-    - name: Clear Cache and Force Restore
+    - name: Standard Local Restore
+      # استعادة عادية ومحلية تماماً باستخدام المستودع الافتراضي للسيرفر
       run: |
-        dotnet nuget locals all --clear
         cd NajdOS
-        # نأمر الـ Restore بتجاهل أي ملفات إعدادات قديمة في المستودع والاعتماد على السيرفر فقط
-        dotnet restore NajdOS.csproj --no-cache --force
+        dotnet restore NajdOS.csproj
 
     - name: Compile and Build New ISO
+      # بناء النظام الجديد بالكامل وتوجيه ملف الـ ISO إلى مجلد مخصص اسمه NajdOS_Builds برا
       run: |
         cd NajdOS
-        # بناء النظام الجديد كاملاً مع الواجهة والملفات وحفظ الـ ISO في مجلد محدد
         dotnet build NajdOS.csproj --configuration Release --output ../NajdOS_Builds/
 
     - name: Upload Integrated ISO
