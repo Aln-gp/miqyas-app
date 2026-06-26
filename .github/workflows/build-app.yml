@@ -27,12 +27,12 @@ jobs:
         flutter-version: '3.x'
         channel: 'stable'
 
-    - name: Get Dependencies and Inject Code
+    - name: Get Dependencies and Inject App Code
       run: |
         flutter pub get || true
         flutter pub add http || true
         
-        # كتابة الكود الكامل والشامل داخل lib/main.dart تلقائياً لضمان عدم نقص أي واجهة
+        # إنشاء مجلد الـ lib وكتابة الكود الكامل والشامل للواجهات
         mkdir -p lib
         cat << 'EOF' > lib/main.dart
         import 'dart:convert';
@@ -80,9 +80,9 @@ jobs:
           final _phoneController = TextEditingController();
           final _smsController = TextEditingController();
           
-          // دمج ذكي للمفاتيح لتجنب فحص الأمان الآلي لـ GitHub (Secret Scanner)
-          final String firebaseApiKey = "AIzaSyBoOC7" + "Ni8Yi3shtOgSS5tdYit0FA4" + "GyAU";
-          final String geminiApiKey = "AQ.Ab8RN6KzSdVNf-" + "33ip_4DSMwg4HCx5vXY_" + "XHhgORkSiZA-CJuQ";
+          // قراءة المفاتيح بأمان من الـ Environment Variables الممررة وقت البناء
+          final String firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY');
+          final String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 
           Future<void> handleAuth() async {
             if (!_isPhoneAuth && (_emailController.text.isEmpty || _passwordController.text.isEmpty)) {
@@ -260,7 +260,7 @@ jobs:
                               ),
                               TextButton(
                                 onPressed: () => setState(() => _isLogin = !_isLogin),
-                                child: Text(_isLogin ? "إنشاء حساب" : "لديك حساب؟", style: const TextStyle(color: Color(0xFF2F80ED), fontWeight: FontWeight.bold)),
+                                child: Text(_isLogin ? "إنشاء حساب" : "لديك حساب؟", style: const TextStyle(color: Color(0xFF2F80ED), fontW8: FontWeight.bold)),
                               ),
                             ],
                           ),
@@ -402,4 +402,4 @@ jobs:
                       },
                     ),
                   ),
-                  if (_isLoading) const Padding(padding: 
+                  if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator
