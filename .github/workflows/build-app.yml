@@ -27,15 +27,16 @@ jobs:
         flutter-version: '3.x'
         channel: 'stable'
 
-    - name: Get Dependencies and Inject App Code
+    - name: Initialize Flutter Project
       run: |
-        # تهيئة المشروع باسم حزمة صحيح متوافق مع شروط لغة Dart (باستخدام الشرطة السفلية)
         if [ ! -d "android" ] || [ ! -d "ios" ] || [ ! -d "web" ] || [ ! -d "macos" ]; then
           flutter create --platforms=android,ios,macos,web --project-name=miqyas_app .
         fi
         flutter pub get
         flutter pub add http || true
-        
+
+    - name: Inject Najd AI App Code
+      run: |
         mkdir -p lib
         cat << 'EOF' > lib/main.dart
         import 'dart:convert';
@@ -403,4 +404,5 @@ jobs:
                         );
                       },
                     ),
-    
+                  ),
+                  if (_isLoading) const P
