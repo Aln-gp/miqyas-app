@@ -16,7 +16,7 @@ jobs:
       with:
         dotnet-version: '8.0.x'
         
-            - name: Restore and Build
+     - name: Restore and Build
      run: |
         # نبني المشروع مباشرة من مجلد NajdOS
         cd NajdOS
