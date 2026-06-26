@@ -16,10 +16,12 @@ jobs:
       with:
         dotnet-version: '8.0.x'
         
-    - name: Restore and Build
-      run: |
-        dotnet restore NajdOS.sln
-        dotnet build NajdOS.sln --configuration Release -v normal
+            - name: Restore and Build
+     run: |
+        # نبني المشروع مباشرة من مجلد NajdOS
+        cd NajdOS
+        dotnet restore NajdOS.csproj
+        dotnet build NajdOS.csproj --configuration Release
 
     - name: Locate and Upload ISO
       run: |
