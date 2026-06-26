@@ -16,15 +16,17 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore Dependencies
-      # هنا خلينا المسار يقرأ الـ nuget.config اللي برا في المستودع الرئيسي مباشرة
+    - name: Clear Cache and Restore Direct
+      # تنظيف الكاش الغبي حق السيرفر وتمرير المصادر مباشرة في الأمر بدون ملف config
       run: |
-        dotnet restore NajdOS/NajdOS.csproj --configfile nuget.config
+        dotnet nuget locals all --clear
+        cd NajdOS
+        dotnet restore NajdOS.csproj --source "https://api.nuget.org/v3/index.json" --source "https://www.myget.org/F/cosmos/api/v3/index.json"
 
-    - name: Compile and Output New ISO
+    - name: Compile and Build New ISO
       run: |
         cd NajdOS
-        # بناء النظام بالواجهة والملفات الجديدة، وحفظ الـ ISO في مجلد محدد اسمه NajdOS_Builds برا
+        # بناء نظام نجد الجديد بالكامل (الواجهة والملفات) وحفظ الـ ISO في مجلد NajdOS_Builds
         dotnet build NajdOS.csproj --configuration Release --output ../NajdOS_Builds/
 
     - name: Upload Integrated ISO
