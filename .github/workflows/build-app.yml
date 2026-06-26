@@ -21,23 +21,13 @@ jobs:
         dotnet restore NajdOS.sln
         dotnet build NajdOS.sln --configuration Release
 
-    - name: Move ISO to Custom Folder
-      shell: powershell
-      run: |
-        New-Item -ItemType Directory -Force -Path "NajdOS/NajdOS_Output"
-        $sourcePath = "NajdOS/bin/Release/net8.0/NajdOS.iso"
-        if (Test-Path $sourcePath) {
-            Move-Item -Path $sourcePath -Destination "NajdOS/NajdOS_Output/NajdOS_New.iso" -Force
-            Write-Output "ISO moved successfully!"
-        } else {
-            Write-Error "ISO file not found!"
-            exit 1
-        }
-
-    - name: Upload ISO
+    - name: Find and Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
-        path: NajdOS/NajdOS_Output/
+        # هنا نخليه يبحث تلقائياً عن ملف الـ ISO في كل مجلدات النظام ويرفعه مباشرة بدون تحديد مجلد مخرج معين
+        path: |
+          **/bin/Release/net8.0/*.iso
+          **/*.iso
         if-no-files-found: error
         
