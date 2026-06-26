@@ -16,19 +16,29 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Build Najd OS Solution
-      # البناء مباشرة من المجلد الرئيسي حيث يوجد ملف الـ sln حقنا
+    - name: Create Clean NuGet Config
+      # إنشاء ملف إعدادات نظيف ومؤقت داخل السيرفر ليتعرف على حزم Cosmos فوراً
       run: |
-        dotnet restore NajdOS.sln
-        dotnet build NajdOS.sln --configuration Release /p:Deploy=ISO /p:Description="NajdOS Build"
+        echo "<?xml version='1.0' encoding='utf-8'?>" > nuget.config
+        echo "<configuration>" >> nuget.config
+        echo "  <packageSources>" >> nuget.config
+        echo "    <add key='nuget.org' value='https://api.nuget.org/v3/index.json' />" >> nuget.config
+        echo "    <add key='Cosmos' value='https://www.myget.org/F/cosmos/api/v3/index.json' />" >> nuget.config
+        echo "  </packageSources>" >> nuget.config
+        echo "</configuration>" >> nuget.config
+
+    - name: Build Najd OS Project Directly
+      # تجاوز ملف الـ sln وبناء ملف الـ csproj مباشرة مع ملف الإعدادات الجديد
+      run: |
+        dotnet restore NajdOS/NajdOS.csproj --configfile nuget.config
+        dotnet build NajdOS/NajdOS.csproj --configuration Release
 
     - name: Find and Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
-        # البحث الشامل في كل المجلدات (بما فيها المجلدات الفرعية) لقطف ملف الـ ISO وضمان رفعه
         path: |
-          **/bin/Release/**/*.iso
+          NajdOS/bin/Release/net8.0/*.iso
           **/*.iso
         if-no-files-found: error
         
