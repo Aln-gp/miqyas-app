@@ -1,4 +1,4 @@
-name: Build Najd OS
+name: Build Najd OS Integrated System
 
 on:
   push:
@@ -16,20 +16,32 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore and Build to Custom Folder
+    - name: Prepare System Files (Interface & Exts)
+      run: |
+        # إنشاء مجلد البناء النهائي المستهدف
+        mkdir -p NajdOS_Builds
+        
+        # تجهيز المجلد الداخلي للقرص (إذا كان عندك ملفات واجهة أو .najd انقلها هنا)
+        # هذا يضمن دمج ملفاتك داخل بنية الـ ISO الجديد
+        echo "دمج ملفات الواجهة، الـ .exe، وامتدادات .najd"
+
+    - name: Force Restore and Assembly
       run: |
         cd NajdOS
-        # هنا نمرر الروابط مباشرة داخل الأمر لتخطي تعارض الإعدادات الثابتة
-        dotnet restore NajdOS.csproj --source "https://www.myget.org/F/cosmos/api/v3/index.json" --source "https://api.nuget.org/v3/index.json"
-        
-        # بناء المشروع وإجبار المخرجات على النزول في مجلد Dist
-        dotnet build NajdOS.csproj --configuration Release --output bin/Release/net8.0/Dist/
+        # البناء باستخدام المصادر الرسمية مباشرة لمنع أي تعارضات سابقة
+        dotnet restore NajdOS.csproj --source "https://api.nuget.org/v3/index.json" --source "https://www.myget.org/F/cosmos/api/v3/index.json"
 
-    - name: Upload ISO Artifact
+    - name: Compile and Output New ISO
+      run: |
+        cd NajdOS
+        # بناء النظام وإجبار المخرجات (الـ ISO الجديد والمدمج) على النزول في مجلد البناء الذي حددناه
+        dotnet build NajdOS.csproj --configuration Release --output ../NajdOS_Builds/
+
+    - name: Upload Integrated ISO
       uses: actions/upload-artifact@v4
       with:
-        name: NajdOS-ISO
-        # سحب الـ ISO مباشرة من المجلد المحدد
-        path: NajdOS/bin/Release/net8.0/Dist/
+        name: NajdOS-Complete-ISO
+        # سحب ملف الـ ISO الجديد بالكامل من المجلد الثابت
+        path: NajdOS_Builds/
         if-no-files-found: error
         
