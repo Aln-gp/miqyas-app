@@ -15,9 +15,9 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
-        
-     - name: Restore and Build
-     run: |
+
+    - name: Restore and Build
+      run: |
         # نبني المشروع مباشرة من مجلد NajdOS
         cd NajdOS
         dotnet restore NajdOS.csproj
@@ -40,6 +40,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-ISO
-        path: ${{ env.GITHUB_ENV.ISO_PATH }}
+        path: ${{ env.ISO_PATH }}
         if-no-files-found: error
-        
