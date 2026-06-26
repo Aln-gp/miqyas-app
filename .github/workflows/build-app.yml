@@ -16,17 +16,18 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Build Najd OS Project Directly
-      # بناء ملف الـ csproj مباشرة وتمرير خادم حزم Cosmos في سطر الأمر غصب عنه
+    - name: Build Najd OS Solution
+      # البناء باستخدام ملف الـ sln المضبوط مع تمرير سيرفرات الحزم مباشرة
       run: |
-        dotnet restore NajdOS/NajdOS.csproj --source "https://api.nuget.org/v3/index.json" --source "https://www.myget.org/F/cosmos/api/v3/index.json"
-        dotnet build NajdOS/NajdOS.csproj --configuration Release
+        dotnet restore NajdOS.sln --source "https://api.nuget.org/v3/index.json" --source "https://www.myget.org/F/cosmos/api/v3/index.json"
+        dotnet build NajdOS.sln --configuration Release
 
     - name: Find and Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
         path: |
-          NajdOS/bin/Release/net8.0/*.iso
+          **/bin/Release/net8.0/*.iso
           **/*.iso
         if-no-files-found: error
+        
