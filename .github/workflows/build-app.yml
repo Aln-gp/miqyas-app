@@ -29,10 +29,13 @@ jobs:
 
     - name: Get Dependencies and Inject App Code
       run: |
-        flutter pub get || true
+        # التأكد من تهيئة المشروع لكل المنصات إذا لم تكن المجلدات موجودة
+        if [ ! -d "android" ] || [ ! -d "ios" ] || [ ! -d "web" ] || [ ! -d "macos" ]; then
+          flutter create --platforms=android,ios,macos,web .
+        fi
+        flutter pub get
         flutter pub add http || true
         
-        # إنشاء مجلد الـ lib وكتابة الكود الكامل والشامل للواجهات
         mkdir -p lib
         cat << 'EOF' > lib/main.dart
         import 'dart:convert';
@@ -80,7 +83,6 @@ jobs:
           final _phoneController = TextEditingController();
           final _smsController = TextEditingController();
           
-          // قراءة المفاتيح بأمان من الـ Environment Variables الممررة وقت البناء
           final String firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY');
           final String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 
@@ -260,7 +262,7 @@ jobs:
                               ),
                               TextButton(
                                 onPressed: () => setState(() => _isLogin = !_isLogin),
-                                child: Text(_isLogin ? "إنشاء حساب" : "لديك حساب؟", style: const TextStyle(color: Color(0xFF2F80ED), fontW8: FontWeight.bold)),
+                                child: Text(_isLogin ? "إنشاء حساب" : "لديك حساب؟", style: const TextStyle(color: Color(0xFF2F80ED), fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
@@ -402,4 +404,4 @@ jobs:
                       },
                     ),
                   ),
-                  if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator
+                  if (_is
