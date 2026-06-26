@@ -1,4 +1,4 @@
-name: Najd AI Ultimate Platform Builder
+name: Najd AI Ultimate Full Platform Builder
 
 on:
   push:
@@ -7,402 +7,170 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-all-platforms:
+  build:
     name: Build Najd AI Full Ecosystem
     runs-on: macos-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+    - name: Run actions/checkout@v3
+      uses: actions/checkout@v3
 
-    - name: Setup Java (Android Requirements)
-      uses: actions/setup-java@v4
+    - name: Set up Java
+      uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
         java-version: '17'
 
-    - name: Setup Flutter Engine
+    - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.x'
         channel: 'stable'
 
-    - name: Initialize Flutter Project
+    - name: Create and Code Miqyas App
       run: |
-        if [ ! -d "android" ] || [ ! -d "ios" ] || [ ! -d "web" ] || [ ! -d "macos" ]; then
-          flutter create --platforms=android,ios,macos,web --project-name=miqyas_app .
-        fi
+        flutter create --platforms=android,ios,macos,web --project-name=miqyas_app .
         flutter pub get
         flutter pub add http || true
-
-    - name: Inject Najd AI App Code
-      run: |
         mkdir -p lib
-        cat << 'EOF' > lib/main.dart
-        import 'dart:convert';
-        import 'package:flutter/material.dart';
-        import 'package:http/http.dart' as http;
+        rm -f lib/main.dart
+        
+        echo "import 'dart:convert';" >> lib/main.dart
+        echo "import 'package:flutter/material.dart';" >> lib/main.dart
+        echo "import 'package:http/http.dart' as http;" >> lib/main.dart
+        echo "void main() { runApp(const NajdAIApp()); }" >> lib/main.dart
+        echo "class NajdAIApp extends StatelessWidget {" >> lib/main.dart
+        echo "  const NajdAIApp({Key? key}) : super(key: key);" >> lib/main.dart
+        echo "  @override" >> lib/main.dart
+        echo "  Widget build(BuildContext context) {" >> lib/main.dart
+        echo "    return MaterialApp(" >> lib/main.dart
+        echo "      title: 'Najd AI'," >> lib/main.dart
+        echo "      debugShowCheckedModeBanner: false," >> lib/main.dart
+        echo "      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: const Color(0xFF0F0F10))," >> lib/main.dart
+        echo "      home: const AuthScreen()," >> lib/main.dart
+        echo "    );" >> lib/main.dart
+        echo "  }" >> lib/main.dart
+        echo "}" >> lib/main.dart
+        echo "class AuthScreen extends StatefulWidget {" >> lib/main.dart
+        echo "  const AuthScreen({Key? key}) : super(key: key);" >> lib/main.dart
+        echo "  @override" >> lib/main.dart
+        echo "  State<AuthScreen> createState() => _AuthScreenState();" >> lib/main.dart
+        echo "}" >> lib/main.dart
+        echo "class _AuthScreenState extends State<AuthScreen> {" >> lib/main.dart
+        echo "  final _email = TextEditingController();" >> lib/main.dart
+        echo "  final _pass = TextEditingController();" >> lib/main.dart
+        echo "  final String firebaseKey = String.fromEnvironment('FIREBASE_API_KEY');" >> lib/main.dart
+        echo "  final String geminiKey = String.fromEnvironment('GEMINI_API_KEY');" >> lib/main.dart
+        echo "  void _go() { Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => MainDashboard(geminiKey: geminiKey))); }" >> lib/main.dart
+        echo "  @override" >> lib/main.dart
+        echo "  Widget build(BuildContext context) {" >> lib/main.dart
+        echo "    return Scaffold(" >> lib/main.dart
+        echo "      body: Center(" >> lib/main.dart
+        echo "        child: Padding(" >> lib/main.dart
+        echo "          padding: const EdgeInsets.all(24.0)," >> lib/main.dart
+        echo "          child: Column(" >> lib/main.dart
+        echo "            mainAxisAlignment: MainAxisAlignment.center," >> lib/main.dart
+        echo "            children: [" >> lib/main.dart
+        echo "              const Icon(Icons.psychology, size: 70, color: Color(0xFF2F80ED))," >> lib/main.dart
+        echo "              const SizedBox(height: 10)," >> lib/main.dart
+        echo "              const Text('🤖 منصة نجد AI', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))," >> lib/main.dart
+        echo "              const Text('بواسطة يزن النفيعي', style: TextStyle(color: Colors.grey))," >> lib/main.dart
+        echo "              const SizedBox(height: 30)," >> lib/main.dart
+        echo "              TextField(controller: _email, decoration: const InputDecoration(labelText: 'البريد الإلكتروني', filled: true))," >> lib/main.dart
+        echo "              const SizedBox(height: 15)," >> lib/main.dart
+        echo "              TextField(controller: _pass, obscureText: true, decoration: const InputDecoration(labelText: 'كلمة المرور', filled: true))," >> lib/main.dart
+        echo "              const SizedBox(height: 25)," >> lib/main.dart
+        echo "              ElevatedButton(style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)), onPressed: _go, child: const Text('دخول مباشر'))," >> lib/main.dart
+        echo "            ]," >> lib/main.dart
+        echo "          )," >> lib/main.dart
+        echo "        )," >> lib/main.dart
+        echo "      )," >> lib/main.dart
+        echo "    );" >> lib/main.dart
+        echo "  }" >> lib/main.dart
+        echo "}" >> lib/main.dart
+        echo "class MainDashboard extends StatefulWidget {" >> lib/main.dart
+        echo "  final String geminiKey;" >> lib/main.dart
+        echo "  const MainDashboard({Key? key, required this.geminiKey}) : super(key: key);" >> lib/main.dart
+        echo "  @override" >> lib/main.dart
+        echo "  State<MainDashboard> createState() => _MainDashboardState();" >> lib/main.dart
+        echo "}" >> lib/main.dart
+        echo "class _MainDashboardState extends State<MainDashboard> {" >> lib/main.dart
+        echo "  final _controller = TextEditingController();" >> lib/main.dart
+        echo "  final List<String> _chats = [];" >> lib/main.dart
+        echo "  bool _loading = false;" >> lib/main.dart
+        echo "  Future<void> _send(String t) async {" >> lib/main.dart
+        echo "    if (t.trim().isEmpty) return;" >> lib/main.dart
+        echo "    setState(() { _chats.add('أنت: \$t'); _loading = true; });" >> lib/main.dart
+        echo "    _controller.clear();" >> lib/main.dart
+        echo "    final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${widget.geminiKey}');" >> lib/main.dart
+        echo "    try {" >> lib/main.dart
+        echo "      final res = await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'contents': [{'parts': [{'text': 'أنت نجد AI من تطوير المبرمج يزن النفيعي من الطائف. أجب باختصار واعتزاز بمشاريع يزن مثل Black-link OS و BeAna Sport OS. السؤال: ' + t}]}]}));" >> lib/main.dart
+        echo "      if (res.statusCode == 200) {" >> lib/main.dart
+        echo "        var d = jsonDecode(res.body);" >> lib/main.dart
+        echo "        setState(() { _chats.add('نجد AI: ' + d['candidates'][0]['content']['parts'][0]['text']); });" >> lib/main.dart
+        echo "      }" >> lib/main.dart
+        echo "    } catch (e) {" >> lib/main.dart
+        echo "      setState(() { _chats.add('❌ خطأ في الاتصال بنجد AI'); });" >> lib/main.dart
+        echo "    } finally {" >> lib/main.dart
+        echo "      setState(() { _loading = false; });" >> lib/main.dart
+        echo "    }" >> lib/main.dart
+        echo "  }" >> lib/main.dart
+        echo "  @override" >> lib/main.dart
+        echo "  Widget build(BuildContext context) {" >> lib/main.dart
+        echo "    return Scaffold(" >> lib/main.dart
+        echo "      appBar: AppBar(title: const Text('🤖 نجد AI - اللوحة الذكية'))," >> lib/main.dart
+        echo "      body: Column(" >> lib/main.dart
+        echo "        children: [" >> lib/main.dart
+        echo "          Expanded(child: ListView.builder(itemCount: _chats.length, itemBuilder: (c, i) => ListTile(title: Text(_chats[i]))))," >> lib/main.dart
+        echo "          if (_loading) const LinearProgressIndicator()," >> lib/main.dart
+        echo "          Container(" >> lib/main.dart
+        echo "            padding: const EdgeInsets.all(8)," >> lib/main.dart
+        echo "            child: Row(" >> lib/main.dart
+        echo "              children: [" >> lib/main.dart
+        echo "                Expanded(child: TextField(controller: _controller, decoration: const InputDecoration(hintText: 'اسأل نجد AI...')))," >> lib/main.dart
+        echo "                IconButton(icon: const Icon(Icons.send), onPressed: () => _send(_controller.text))," >> lib/main.dart
+        echo "              ]," >> lib/main.dart
+        echo "            )," >> lib/main.dart
+        echo "          )" >> lib/main.dart
+        echo "        ]," >> lib/main.dart
+        echo "      )," >> lib/main.dart
+        echo "    );" >> lib/main.dart
+        echo "  }" >> lib/main.dart
+        echo "}" >> lib/main.dart
 
-        void main() {
-          runApp(const NajdAIApp());
-        }
+    - name: Build Android APK
+      run: flutter build apk --release --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
 
-        class NajdAIApp extends StatefulWidget {
-          const NajdAIApp({Key? key}) : super(key: key);
-          @override
-          State<NajdAIApp> createState() => _NajdAIAppState();
-        }
+    - name: Build iOS IPA (Unsigned)
+      run: flutter build ios --release --no-codesign --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
 
-        class _NajdAIAppState extends State<NajdAIApp> {
-          @override
-          Widget build(BuildContext context) {
-            return MaterialApp(
-              title: 'Najd AI',
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData.dark().copyWith(
-                scaffoldBackgroundColor: const Color(0xFF0F0F10),
-                primaryColor: const Color(0xFF2F80ED),
-                cardColor: const Color(0xFF1A1A1C),
-              ),
-              home: const AuthScreen(),
-            );
-          }
-        }
+    - name: Build macOS App
+      run: flutter build macos --release --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
 
-        class AuthScreen extends StatefulWidget {
-          const AuthScreen({Key? key}) : super(key: key);
-          @override
-          State<AuthScreen> createState() => _AuthScreenState();
-        }
+    - name: Build Web Platform
+      run: flutter build web --release --dart-define=FIREBASE_API_KEY="${{ secrets.FIREBASE_API_KEY }}" --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
 
-        class _AuthScreenState extends State<AuthScreen> {
-          bool _isLogin = true;
-          bool _isPhoneAuth = false;
-          bool _isLoading = false;
-          final _emailController = TextEditingController();
-          final _passwordController = TextEditingController();
-          final _phoneController = TextEditingController();
-          final _smsController = TextEditingController();
-          
-          final String firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY');
-          final String geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-android-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
 
-          Future<void> handleAuth() async {
-            if (!_isPhoneAuth && (_emailController.text.isEmpty || _passwordController.text.isEmpty)) {
-              showErrorDialog("تنبيه", "الرجاء تعبئة جميع الحقول المطلوبة.");
-              return;
-            }
-            setState(() => _isLoading = true);
-            String url = _isLogin 
-                ? "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$firebaseApiKey"
-                : "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$firebaseApiKey";
-            
-            try {
-              final response = await http.post(Uri.parse(url),
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({
-                  "email": _emailController.text.trim(),
-                  "password": _passwordController.text.trim(),
-                  "returnSecureToken": true
-                })
-              );
-              if (response.statusCode == 200) {
-                navigateToDashboard();
-              } else {
-                var resBody = jsonDecode(response.body);
-                String errorMsg = resBody['error'] != null ? resBody['error']['message'] : "خطأ غير معروف";
-                showErrorDialog("فشل الرد من السيرفر", "الرمز المرتجع: $errorMsg \nكود الحالة: ${response.statusCode}");
-              }
-            } catch (e) {
-              showErrorDialog("مشكلة في الشبكة", "فشل الاتصال التام بالسيرفر السحابي: $e");
-            } finally {
-              setState(() => _isLoading = false);
-            }
-          }
+    - name: Upload iOS Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-ios-ipa
+        path: build/ios/iphoneos/
 
-          Future<void> loginAnonymously() async {
-            setState(() => _isLoading = true);
-            navigateToDashboard();
-            setState(() => _isLoading = false);
-          }
+    - name: Upload macOS Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-macos-app
+        path: build/macos/Build/Products/Release/
 
-          void navigateToDashboard() {
-            Navigator.pushReplacement(
-              context, 
-              MaterialPageRoute(builder: (context) => MainDashboard(geminiKey: geminiApiKey))
-            );
-          }
-
-          void showErrorDialog(String title, String message) {
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: const Color(0xFF1A1A1C),
-                title: Text(title, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-                content: Text(message, style: const TextStyle(color: Colors.white70)),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("موافق", style: TextStyle(color: Color(0xFF2F80ED))))
-                ],
-              ),
-            );
-          }
-
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              body: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF0F0F10), Color(0xFF1A1B20)],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                ),
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(28.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF2F80ED).withOpacity(0.1),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFF2F80ED).withOpacity(0.3), width: 2)
-                          ),
-                          child: const Icon(Icons.psychology, size: 64, color: Color(0xFF2F80ED)),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text("🤖 منصة نجد AI", style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white)),
-                        const Text("المطورة بواسطة المبرمج يزن النفيعي", style: TextStyle(color: Colors.grey, fontSize: 13)),
-                        const SizedBox(height: 40),
-                        
-                        if (!_isPhoneAuth) ...[
-                          TextField(
-                            controller: _emailController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              labelText: "البريد الإلكتروني",
-                              labelStyle: const TextStyle(color: Colors.white60),
-                              filled: true,
-                              fillColor: const Color(0xFF161618),
-                              prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF2F80ED)),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _passwordController,
-                            obscureText: true,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              labelText: "كلمة المرور",
-                              labelStyle: const TextStyle(color: Colors.white60),
-                              filled: true,
-                              fillColor: const Color(0xFF161618),
-                              prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF2F80ED)),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                            ),
-                          ),
-                        ] else ...[
-                          TextField(
-                            controller: _phoneController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              labelText: "رقم الهاتف",
-                              labelStyle: const TextStyle(color: Colors.white60),
-                              filled: true,
-                              fillColor: const Color(0xFF161618),
-                              prefixIcon: const Icon(Icons.phone_android, color: Color(0xFF2F80ED)),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _smsController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              labelText: "كود التحقق",
-                              labelStyle: const TextStyle(color: Colors.white60),
-                              filled: true,
-                              fillColor: const Color(0xFF161618),
-                              prefixIcon: const Icon(Icons.sms_outlined, color: Color(0xFF2F80ED)),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                            ),
-                          ),
-                        ],
-                        
-                        const SizedBox(height: 28),
-                        if (_isLoading) 
-                          const CircularProgressIndicator(color: Color(0xFF2F80ED))
-                        else ...[
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              gradient: const LinearGradient(colors: [Color(0xFF2F80ED), Color(0xFF0056C6)])
-                            ),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                minimumSize: const Size.fromHeight(54), 
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
-                              ),
-                              onPressed: _isPhoneAuth ? navigateToDashboard : handleAuth,
-                              child: Text(_isPhoneAuth ? "تحقق ودخول" : (_isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد"), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton(
-                                onPressed: () => setState(() => _isPhoneAuth = !_isPhoneAuth),
-                                child: Text(_isPhoneAuth ? "الدخول بالإيميل" : "تسجيل بالهاتف 📱", style: const TextStyle(color: Colors.white70)),
-                              ),
-                              TextButton(
-                                onPressed: () => setState(() => _isLogin = !_isLogin),
-                                child: Text(_isLogin ? "إنشاء حساب" : "لديك حساب؟", style: const TextStyle(color: Color(0xFF2F80ED), fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12.0),
-                            child: Row(children: [Expanded(child: Divider(color: Colors.white12)), Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("أو", style: TextStyle(color: Colors.white38))), Expanded(child: Divider(color: Colors.white12))]),
-                          ),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(50),
-                              side: const BorderSide(color: Colors.white24),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            ),
-                            icon: const Icon(Icons.person_outline, color: Colors.white60),
-                            onPressed: loginAnonymously,
-                            label: const Text("🕵️‍♂️ تخطي والدخول كـ زائر مباشر", style: TextStyle(color: Colors.white, fontSize: 15)),
-                          )
-                        ]
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-        }
-
-        class MainDashboard extends StatefulWidget {
-          final String geminiKey;
-          const MainDashboard({Key? key, required this.geminiKey}) : super(key: key);
-          @override
-          State<MainDashboard> createState() => _MainDashboardState();
-        }
-
-        class _MainDashboardState extends State<MainDashboard> {
-          final TextEditingController _controller = TextEditingController();
-          final List<Map<String, String>> _messages = [];
-          bool _isLoading = false;
-
-          final String systemContext = "أنت نجد AI، المنصة الذكية والمساعد المطور من المبرمج يزن النفيعي من الطائف. "
-              "تمتلك في ذاكرتك معلومات كاملة عن مشاريع يزن وعليك التحدث عنها بفخر: "
-              "1. Black-link OS: نظام تشغيل وتطبيق مراسلة احترافي يحمل شعار عزنا بطبعنا. "
-              "2. BeAna Sport OS: لانشر وتطبيق ل شاشات Android TV لبث المباريات والرياضة. "
-              "3. تطبيق نجد ومجلس: منصة اجتماعية مميزة وغرف حوارية. "
-              "4. DocuFlow AI: أداة توثيق الأكواد على Replit.";
-
-          Future<void> sendToNajdAI(String text) async {
-            if (text.trim().isEmpty) return;
-            setState(() {
-              _messages.add({"role": "user", "type": "text", "content": text});
-              _isLoading = true;
-            });
-            _controller.clear();
-
-            bool isImageRequest = text.contains("صورة") || text.contains("تصميم") || text.contains("صمم") || text.contains("ارسم");
-            String urlPath = isImageRequest ? "models/imagen-3.0-generate-002:generateImages" : "models/gemini-1.5-flash:generateContent";
-            final url = Uri.parse("https://generativelanguage.googleapis.com/v1beta/$urlPath?key=${widget.geminiKey}");
-            
-            try {
-              Map<String, dynamic> requestBody = isImageRequest ? {
-                "prompt": text, "numberOfImages": 1, "outputMimeType": "image/jpeg", "aspectRatio": "1:1"
-              } : {
-                "contents": [{"parts": [{"text": "$systemContext \nسؤال المستخدم: $text"}]}]
-              };
-
-              final response = await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode(requestBody));
-              if (response.statusCode == 200) {
-                var data = jsonDecode(response.body);
-                setState(() {
-                  if (isImageRequest) {
-                    var base64Image = data['generatedImages'][0]['image']['imageBytes'];
-                    _messages.add({"role": "najd", "type": "image", "content": base64Image});
-                  } else {
-                    var reply = data['candidates'][0]['content']['parts'][0]['text'];
-                    _messages.add({"role": "najd", "type": "text", "content": reply});
-                  }
-                });
-              }
-            } catch (e) {
-              setState(() => _messages.add({"role": "najd", "type": "text", "content": "❌ حدث خطأ في الاتصال بجلسة نجد AI."}));
-            } finally {
-              setState(() => _isLoading = false);
-            }
-          }
-
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text("🤖 نجد AI - اللوحة الذكية"),
-                backgroundColor: const Color(0xFF161618),
-                elevation: 0,
-              ),
-              drawer: Drawer(
-                child: Container(
-                  color: const Color(0xFF161618),
-                  child: ListView(
-                    children: [
-                      const DrawerHeader(
-                        child: Center(
-                          child: Text("🏗️ نجد AI Hub", style: TextStyle(color: Color(0xFF2F80ED), fontSize: 24, fontWeight: FontWeight.bold))
-                        )
-                      ),
-                      ListTile(leading: const Icon(Icons.settings, color: Colors.white), title: const Text("إعدادات المنصة والمظهر")),
-                      ListTile(leading: const Icon(Icons.folder_special, color: Colors.amber), title: const Text("بيانات ومشاريع Black-link OS")),
-                      ListTile(leading: const Icon(Icons.tv, color: Colors.green), title: const Text("بيانات BeAna Sport OS")),
-                      const Divider(color: Colors.white10),
-                      ListTile(
-                        leading: const Icon(Icons.logout, color: Colors.redAccent), 
-                        title: const Text("تسجيل الخروج"), 
-                        onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AuthScreen()))
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              body: Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _messages.length,
-                      itemBuilder: (context, index) {
-                        var msg = _messages[index];
-                        bool isUser = msg["role"] == "user";
-                        return Container(
-                          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: isUser ? const Color(0xFF232326) : const Color(0xFF161618), 
-                              borderRadius: BorderRadius.circular(16)
-                            ),
-                            child: msg["type"] == "text" 
-                                ? Text(msg["content"]!, style: const TextStyle(color: Colors.white, fontSize: 15))
-                                : ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(base64Decode(msg["content"]!), width: 250, height: 250, fit: BoxFit.cover)),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  if (_isLoading) const P
+    - name: Upload Web Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-web-platform
+        path: build/web/
+        
