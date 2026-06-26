@@ -33,7 +33,6 @@ jobs:
         cd najd_ai
         flutter pub add http
 
-        # كتابة الكود البرمجي المطور لنجd AI بواجهة جديدة وإصلاح الأزرار
         cat << 'EOF' > lib/main.dart
         import 'dart:convert';
         import 'package:flutter/material.dart';
@@ -83,7 +82,6 @@ jobs:
           final String firebaseApiKey = "AIzaSyBoOC7Ni8Yi3shtOgSS5tdYit0FA49GyAU";
           final String geminiApiKey = "AQ.Ab8RN6KzSdVNf-33ip_4DSMwg4HCx5vXY_XHhgORkSiZA-CJuQ";
 
-          // دالة الحسابات عبر الإيميل والباسورد
           Future<void> handleAuth() async {
             if (!_isPhoneAuth && (_emailController.text.isEmpty || _passwordController.text.isEmpty)) {
               showErrorDialog("تنبيه", "الرجاء تعبئة جميع الحقول المطلوبة.");
@@ -117,28 +115,10 @@ jobs:
             }
           }
 
-          // 🛠️ دالة الدخول كزائر مصلحة ومحمية بالكامل
           Future<void> loginAnonymously() async {
             setState(() => _isLoading = true);
-            String url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$firebaseApiKey";
-            try {
-              final response = await http.post(Uri.parse(url),
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({"returnSecureToken": true})
-              );
-              
-              if (response.statusCode == 200) {
-                navigateToDashboard();
-              } else {
-                // تجاوز الخطأ والدخول مباشرة حتى لو كانت الخدمة مغلقة بالفايربيس!
-                navigateToDashboard();
-              }
-            } catch (e) {
-              // تجاوز خطأ الشبكة لضمان عمل زر الزائر دائماً
-              navigateToDashboard();
-            } finally {
-              setState(() => _isLoading = false);
-            }
+            navigateToDashboard();
+            setState(() => _isLoading = false);
           }
 
           void navigateToDashboard() {
@@ -179,7 +159,6 @@ jobs:
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // أيقونة فخمة وشعار المنصة الجديد
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -190,11 +169,10 @@ jobs:
                           child: const Icon(Icons.psychology, size: 64, color: Color(0xFF2F80ED)),
                         ),
                         const SizedBox(height: 20),
-                        const Text("🤖 منصة نجد AI", style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.5)),
-                        const Text("المطورة بواسطة المبرمج يزن النفيعي", style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w400)),
+                        const Text("🤖 منصة نجد AI", style: TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white)),
+                        const Text("المطورة بواسطة المبرمج يزن النفيعي", style: TextStyle(color: Colors.grey, fontSize: 13)),
                         const SizedBox(height: 40),
                         
-                        // تصميم حقول الإدخال الجديد
                         if (!_isPhoneAuth) ...[
                           TextField(
                             controller: _emailController,
@@ -206,7 +184,6 @@ jobs:
                               fillColor: const Color(0xFF161618),
                               prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF2F80ED)),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 1.5)),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -221,7 +198,6 @@ jobs:
                               fillColor: const Color(0xFF161618),
                               prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF2F80ED)),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 1.5)),
                             ),
                           ),
                         ] else ...[
@@ -229,13 +205,12 @@ jobs:
                             controller: _phoneController,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: "رقم الهاتف (مع رمز الدولة)",
+                              labelText: "رقم الهاتف",
                               labelStyle: const TextStyle(color: Colors.white60),
                               filled: true,
                               fillColor: const Color(0xFF161618),
                               prefixIcon: const Icon(Icons.phone_android, color: Color(0xFF2F80ED)),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 1.5)),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -243,13 +218,12 @@ jobs:
                             controller: _smsController,
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
-                              labelText: "كود التحقق الـ SMS",
+                              labelText: "كود التحقق",
                               labelStyle: const TextStyle(color: Colors.white60),
                               filled: true,
                               fillColor: const Color(0xFF161618),
                               prefixIcon: const Icon(Icons.sms_outlined, color: Color(0xFF2F80ED)),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 1.5)),
                             ),
                           ),
                         ],
@@ -258,7 +232,6 @@ jobs:
                         if (_isLoading) 
                           const CircularProgressIndicator(color: Color(0xFF2F80ED))
                         else ...[
-                          // زر التثبيت الرئيسي الأنيق بحواف دائرية وظل خفيف
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
@@ -293,7 +266,6 @@ jobs:
                             padding: EdgeInsets.symmetric(vertical: 12.0),
                             child: Row(children: [Expanded(child: Divider(color: Colors.white12)), Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text("أو", style: TextStyle(color: Colors.white38))), Expanded(child: Divider(color: Colors.white12))]),
                           ),
-                          // زر الدخول كزائر المعدل والجاهز للعمل فوراً
                           OutlinedButton.icon(
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size.fromHeight(50),
@@ -366,7 +338,7 @@ jobs:
                 });
               }
             } catch (e) {
-              setState(() => _messages.add({"role": "najd", "type": "text", "content": "❌ حدث خطأ في الاتصال السحابي بجلسة نجد AI."}));
+              setState(() => _messages.add({"role": "najd", "type": "text", "content": "❌ حدث خطأ في الاتصال بجلسة نجد AI."}));
             } finally {
               setState(() => _isLoading = false);
             }
@@ -376,14 +348,61 @@ jobs:
           Widget build(BuildContext context) {
             return Scaffold(
               appBar: AppBar(title: const Text("🤖 منصة نجد AI المتكاملة"), backgroundColor: const Color(0xFF161618), elevation: 0),
-              drawer: Drawer(
-                child: Container(
-                  color: const Color(0xFF161618),
-                  child: ListView(
-                    children: [
-                      const DrawerHeader(child: Center(child: Text("🏗️ نجد AI Hub", style: TextStyle(color: Color(0xFF2F80ED), fontSize: 24, fontWeight: FontWeight.bold)))),
-                      ListTile(leading: const Icon(Icons.settings, color: Colors.white), title: const Text("إعدادات المنصة والمظهر", style: TextStyle(color: Colors.white)), onTap: () => Navigator.pop(context)),
-                      ListTile(leading: const Icon(Icons.folder_special, color: Colors.amber), title: const Text("بيانات ومشاريع Black-link OS", style: TextStyle(color: Colors.white)), onTap: () => Navigator.pop(context)),
-                      ListTile(leading: const Icon(Icons.tv, color: Colors.green), title: const Text("بيانات BeAna Sport OS", style: TextStyle(color: Colors.white)), onTap: () => Navigator.pop(context)),
-                      const Divider(color: Colors.grey),
-         
+              body: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        var msg = _messages[index];
+                        bool isUser = msg["role"] == "user";
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                          alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: isUser ? const Color(0xFF232326) : const Color(0xFF161618), 
+                              borderRadius: BorderRadius.circular(16)
+                            ),
+                            child: msg["type"] == "text" 
+                                ? Text(msg["content"]!, style: const TextStyle(color: Colors.white, fontSize: 15))
+                                : ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.memory(base64Decode(msg["content"]!), width: 250, height: 250, fit: BoxFit.cover)),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (_isLoading) const Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator(color: Color(0xFF2F80ED))),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    color: const Color(0xFF161618),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(color: const Color(0xFF232326), borderRadius: BorderRadius.circular(24)),
+                            child: TextField(
+                              controller: _controller,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: const InputDecoration(hintText: "تحدث مع نجد...", border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        CircleAvatar(radius: 22, backgroundColor: const Color(0xFF2F80ED), child: IconButton(icon: const Icon(Icons.send, color: Colors.white, size: 18), onPressed: () => sendToNajdAI(_controller.text)))
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+        EOF
+
+    - name: Build All Platforms
+      run: |
+        cd najd_ai
+        flutter build apk --release
+        flutter build macos --
