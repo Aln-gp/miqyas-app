@@ -16,29 +16,21 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore and Build
+    - name: Restore Dependencies
       run: |
-        # نبني المشروع مباشرة من مجلد NajdOS
         cd NajdOS
-        dotnet restore NajdOS.csproj
+        dotnet restore NajdOS.csproj --source https://www.myget.org/F/cosmos/api/v3/index.json --source https://api.nuget.org/v3/index.json
+
+    - name: Build ISO to Custom Folder
+      run: |
+        cd NajdOS
         dotnet build NajdOS.csproj --configuration Release
 
-    - name: Locate and Upload ISO
-      run: |
-        # البحث عن ملف الـ ISO في كل مكان
-        $isoPath = Get-ChildItem -Path . -Filter *.iso -Recurse | Select-Object -First 1 -ExpandProperty FullName
-        
-        if ($isoPath) {
-          echo "تم العثور على الملف في: $isoPath"
-          echo "ISO_PATH=$isoPath" >> $env:GITHUB_ENV
-        } else {
-          echo "خطأ: لم يتم العثور على ملف ISO!"
-          exit 1
-        }
-
-    - name: Upload Artifact
+    - name: Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-ISO
-        path: ${{ env.ISO_PATH }}
+        # الحين المسار صار محدد ومضمون داخل مجلد Dist اللي اخترناه
+        path: NajdOS/bin/Release/net8.0/Dist/
         if-no-files-found: error
+        
