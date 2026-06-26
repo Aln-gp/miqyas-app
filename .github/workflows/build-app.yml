@@ -19,22 +19,11 @@ jobs:
     - name: Clean and Force NuGet Sources
       shell: powershell
       run: |
-        # حذف أي ملف إعدادات قديم أو مخفي قد يسبب تضارب في الحزم
         if (Test-Path "nuget.config") { Remove-Item "nuget.config" -Force }
         if (Test-Path "NajdOS/nuget.config") { Remove-Item "NajdOS/nuget.config" -Force }
         
-        # إنشاء ملف إعدادات جديد ونظيف ومضمون مية بالمية
-        $config = @"
-        <?xml version="1.0" encoding="utf-8"?>
-        <configuration>
-          <packageSources>
-            <clear />
-            <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-            <add key="Cosmos" value="https://www.myget.org/F/cosmos/api/v3/index.json" />
-          </packageSources>
-        </configuration>
-        "@
-        Set-Content -Path "nuget.config" -Value $config
+        $config = "[xml]'<?xml version=\"1.0\" encoding=\"utf-8\"?><configuration><packageSources><clear /><add key=\"nuget.org\" value=\"https://api.nuget.org/v3/index.json\" /><add key=\"Cosmos\" value=\"https://www.myget.org/F/cosmos/api/v3/index.json\" /></packageSources></configuration>'"
+        $config.Save("$PWD/nuget.config")
 
     - name: Build Najd OS Solution
       run: |
