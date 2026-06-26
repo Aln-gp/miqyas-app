@@ -16,21 +16,20 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore Dependencies
+    - name: Restore and Build to Custom Folder
       run: |
         cd NajdOS
-        dotnet restore NajdOS.csproj --source https://www.myget.org/F/cosmos/api/v3/index.json --source https://api.nuget.org/v3/index.json
-
-    - name: Build ISO to Custom Folder
-      run: |
-        cd NajdOS
-        dotnet build NajdOS.csproj --configuration Release
+        # هنا نمرر الروابط مباشرة داخل الأمر لتخطي تعارض الإعدادات الثابتة
+        dotnet restore NajdOS.csproj --source "https://www.myget.org/F/cosmos/api/v3/index.json" --source "https://api.nuget.org/v3/index.json"
+        
+        # بناء المشروع وإجبار المخرجات على النزول في مجلد Dist
+        dotnet build NajdOS.csproj --configuration Release --output bin/Release/net8.0/Dist/
 
     - name: Upload ISO Artifact
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-ISO
-        # الحين المسار صار محدد ومضمون داخل مجلد Dist اللي اخترناه
+        # سحب الـ ISO مباشرة من المجلد المحدد
         path: NajdOS/bin/Release/net8.0/Dist/
         if-no-files-found: error
         
