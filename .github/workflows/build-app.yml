@@ -16,21 +16,10 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Create Clean NuGet Config
-      # إنشاء ملف إعدادات نظيف ومؤقت داخل السيرفر ليتعرف على حزم Cosmos فوراً
-      run: |
-        echo "<?xml version='1.0' encoding='utf-8'?>" > nuget.config
-        echo "<configuration>" >> nuget.config
-        echo "  <packageSources>" >> nuget.config
-        echo "    <add key='nuget.org' value='https://api.nuget.org/v3/index.json' />" >> nuget.config
-        echo "    <add key='Cosmos' value='https://www.myget.org/F/cosmos/api/v3/index.json' />" >> nuget.config
-        echo "  </packageSources>" >> nuget.config
-        echo "</configuration>" >> nuget.config
-
     - name: Build Najd OS Project Directly
-      # تجاوز ملف الـ sln وبناء ملف الـ csproj مباشرة مع ملف الإعدادات الجديد
+      # بناء ملف الـ csproj مباشرة وتمرير خادم حزم Cosmos في سطر الأمر غصب عنه
       run: |
-        dotnet restore NajdOS/NajdOS.csproj --configfile nuget.config
+        dotnet restore NajdOS/NajdOS.csproj --source "https://api.nuget.org/v3/index.json" --source "https://www.myget.org/F/cosmos/api/v3/index.json"
         dotnet build NajdOS/NajdOS.csproj --configuration Release
 
     - name: Find and Upload ISO Artifact
@@ -41,4 +30,3 @@ jobs:
           NajdOS/bin/Release/net8.0/*.iso
           **/*.iso
         if-no-files-found: error
-        
