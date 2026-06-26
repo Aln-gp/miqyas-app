@@ -18,6 +18,8 @@ jobs:
 
     - name: Build Najd OS
       run: |
+        # الدخول للمجلد الصحيح أولاً حيث يوجد ملف الـ sln والمشروع
+        cd NajdOS
         dotnet restore NajdOS.sln
         dotnet build NajdOS.sln --configuration Release
 
@@ -25,9 +27,9 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: NajdOS-Complete-ISO
-        # هنا نخليه يبحث تلقائياً عن ملف الـ ISO في كل مجلدات النظام ويرفعه مباشرة بدون تحديد مجلد مخرج معين
+        # البحث عن الـ ISO في كل مجلدات المشروع بعد البناء الحقيقي
         path: |
-          **/bin/Release/net8.0/*.iso
+          NajdOS/bin/Release/net8.0/*.iso
           **/*.iso
         if-no-files-found: error
         
