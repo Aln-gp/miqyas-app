@@ -14,21 +14,22 @@ jobs:
 
     - name: Compile and Bundle IPA
       run: |
-        # 1. جلب مسار الحزمة الرسمية لنظام الـ iOS داخل السيرفر
         SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
         
-        # 2. بناء الكود البرمجي مباشرة وتحويله إلى ملف تنفيذي للآيفون (arm64)
+        # بناء كل ملفات السويفت مع ربط مكتبات أبل الرسمية للواجهات والصوت
         swiftc -target arm64-apple-ios15.0 \
           -sdk "$SDK_PATH" \
           -O \
           *.swift \
+          -framework SwiftUI \
+          -framework CarPlay \
+          -framework WebKit \
+          -framework ReplayKit \
           -o CarPlayHub
           
-        # 3. إنشاء هيكل حزمة التطبيق الرسمية (.app)
         mkdir -p Payload/CarPlayHub.app
         mv CarPlayHub Payload/CarPlayHub.app/CarPlayHub
         
-        # 4. توليد ملف Info.plist مدمج به فئات التطبيق والكاربلاي واللمس
         cat <<EOF > Payload/CarPlayHub.app/Info.plist
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -52,13 +53,22 @@ jobs:
                 <true/>
                 <key>UISceneConfigurations</key>
                 <dict>
+                    <key>UIWindowSceneSessionRoleApplication</key>
+                    <array>
+                        <dict>
+                            <key>UISceneConfigurationName</key>
+                            <string>Default Configuration</string>
+                            <key>UISceneDelegateClassName</key>
+                            <string>CarPlayHub.SceneDelegate</string>
+                        </dict>
+                    </array>
                     <key>CPTemplateApplicationSceneSessionRoleApplication</key>
                     <array>
                         <dict>
                             <key>UISceneConfigurationName</key>
                             <string>CarPlay</string>
                             <key>UISceneDelegateClassName</key>
-                            <string>CarPlayFinal.CarPlaySceneDelegate</string>
+                            <string>CarPlayHub.CarPlaySceneDelegate</string>
                         </dict>
                     </array>
                 </dict>
@@ -71,7 +81,6 @@ jobs:
         </plist>
         EOF
 
-        # 5. ضغط الملف بصيغة ipa النهائية جاهزة للتثبيت
         zip -r CarPlayFinal.ipa Payload
         
     - name: Upload Finished IPA
