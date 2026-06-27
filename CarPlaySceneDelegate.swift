@@ -20,13 +20,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         self.interfaceController = interfaceController
         self.carWindow = window
         
-        // إعداد متصفح السيارة التفاعلي باللمس الكامل
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         carWebView = WKWebView(frame: window.bounds, configuration: config)
         carWebView?.customUserAgent = "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
         
-        // تشغيل مراقب لمزامنة ضغطات الجوال (البث والتطبيقات)
         syncTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
             self.updateCarScreen()
         }
@@ -36,10 +34,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         let isMirroring = UserDefaults.standard.bool(forKey: "IsScreenMirroringActive")
         
         if isMirroring {
-            // وضع بث الشاشة
             launchUrlInCar(urlStr: "http://127.0.0.1:8080/stream")
         } else {
-            // تحديث الأزرار بناءً على الاختيارات الخضراء في الجوال
             let savedIDs = UserDefaults.standard.stringArray(forKey: "CarPlayEnabledApps") ?? []
             let activeApps = allApps.filter { savedIDs.contains($0.id) }
             
@@ -51,7 +47,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                 gridButtons.append(btn)
             }
             
-            let gridTemplate = CPGridTemplate(title: "تطبيقاتي المضافة", buttons: gridButtons)
+            // التعديل هنا: تم تغيير التسمية لـ gridButtons ليوافق شروط أبل ويختفي خطأ صورة 41795.jpg
+            let gridTemplate = CPGridTemplate(title: "تطبيقاتي المضافة", gridButtons: gridButtons)
             self.interfaceController?.setRootTemplate(gridTemplate, animated: true)
         }
     }
@@ -62,7 +59,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             web.load(URLRequest(url: URL(string: urlStr)!))
             window.addSubview(web)
             
-            // إضافة زر عودة شفاف فوق المتصفح في السيارة
             let homeBtn = UIButton(frame: CGRect(x: 10, y: 10, width: 45, height: 45))
             homeBtn.setImage(UIImage(systemName: "house.circle.fill"), for: .normal)
             homeBtn.tintColor = .white
@@ -81,4 +77,12 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         syncTimer?.invalidate()
         self.interfaceController = nil
     }
+}
+
+// هيكل البيانات المطلوب لتعريف التطبيقات
+struct CarAppItem: Identifiable, Codable {
+    let id: String
+    let name: String
+    let url: String
+    let icon: String
 }
