@@ -1,8 +1,15 @@
 import SwiftUI
 import ReplayKit
 
+// تعريف الهيكل هنا في البداية عشان المترجم يشوفه فوراً
+struct CarAppItem: Identifiable, Codable {
+    let id: String
+    let name: String
+    let url: String
+    let icon: String
+}
+
 struct PhoneMainView: View {
-    // قائمة المواقع الجاهزة للاختيار
     let availableApps = [
         CarAppItem(id: "yt", name: "YouTube", url: "https://www.youtube.com", icon: "play.rectangle.fill"),
         CarAppItem(id: "tt", name: "TikTok", url: "https://www.tiktok.com", icon: "video.circle.fill"),
@@ -17,7 +24,6 @@ struct PhoneMainView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // ميزة 1: بث شاشة الجوال
                 VStack(alignment: .leading) {
                     Text("بث الشاشة الكامل للسيارة")
                         .font(.caption).foregroundColor(.gray).padding(.horizontal)
@@ -27,7 +33,7 @@ struct PhoneMainView: View {
                             Image(systemName: isMirroring ? "stop.circle.fill" : "tv.and.mediabox.fill")
                             Text(isMirroring ? "إيقاف بث شاشة الآيفون" : "بدء بث الشاشة المباشر")
                         }
-                        .font(.headline) // تعديل: تم استخدام .font(.headline) البديل الآمن لـ .bold()
+                        .font(.headline)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(isMirroring ? Color.red : Color.blue)
                         .foregroundColor(.white).cornerRadius(10).padding(.horizontal)
@@ -35,7 +41,6 @@ struct PhoneMainView: View {
                 }
                 .padding(.vertical, 10).background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                 
-                // ميزة 2: إضافة التطبيقات بالزر الأخضر
                 Text("إضافة تطبيقات ومتصفحات لشاشة السيارة")
                     .font(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
                 
@@ -45,7 +50,6 @@ struct PhoneMainView: View {
                         Text(app.name).font(.headline)
                         Spacer()
                         
-                        // الزر الأخضر (+) للإضافة أو الحذف
                         Button(action: { toggleApp(app.id) }) {
                             Image(systemName: addedAppIDs.contains(app.id) ? "checkmark.circle.fill" : "plus.circle.fill")
                                 .foregroundColor(.green)
