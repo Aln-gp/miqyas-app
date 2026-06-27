@@ -1,13 +1,6 @@
 import SwiftUI
 import ReplayKit
 
-struct CarAppItem: Identifiable, Codable {
-    let id: String
-    let name: String
-    let url: String
-    let icon: String
-}
-
 struct PhoneMainView: View {
     // قائمة المواقع الجاهزة للاختيار
     let availableApps = [
@@ -34,7 +27,8 @@ struct PhoneMainView: View {
                             Image(systemName: isMirroring ? "stop.circle.fill" : "tv.and.mediabox.fill")
                             Text(isMirroring ? "إيقاف بث شاشة الآيفون" : "بدء بث الشاشة المباشر")
                         }
-                        .bold().frame(maxWidth: .infinity, minHeight: 48)
+                        .font(.headline) // تعديل: تم استخدام .font(.headline) البديل الآمن لـ .bold()
+                        .frame(maxWidth: .infinity, minHeight: 48)
                         .background(isMirroring ? Color.red : Color.blue)
                         .foregroundColor(.white).cornerRadius(10).padding(.horizontal)
                     }
