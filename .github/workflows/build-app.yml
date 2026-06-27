@@ -12,34 +12,36 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Create Structure and Entitlements
+    - name: Compile and Bundle IPA
       run: |
-        mkdir -p CarPlayFinal/CarPlayFinal
-        cp *.swift CarPlayFinal/CarPlayFinal/ 2>/dev/null || true
+        # 1. جلب مسار الحزمة الرسمية لنظام الـ iOS داخل السيرفر
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
         
-        # حقن فئات الكاربلاي لتفعيل واجهة شاشة السيارة واللمس والبث
-        cat <<EOF > CarPlayFinal/CarPlayFinal/CarPlayFinal.entitlements
+        # 2. بناء الكود البرمجي مباشرة وتحويله إلى ملف تنفيذي للآيفون (arm64)
+        swiftc -target arm64-apple-ios15.0 \
+          -sdk "$SDK_PATH" \
+          -O \
+          *.swift \
+          -o CarPlayHub
+          
+        # 3. إنشاء هيكل حزمة التطبيق الرسمية (.app)
+        mkdir -p Payload/CarPlayHub.app
+        mv CarPlayHub Payload/CarPlayHub.app/CarPlayHub
+        
+        # 4. توليد ملف Info.plist مدمج به فئات التطبيق والكاربلاي واللمس
+        cat <<EOF > Payload/CarPlayHub.app/Info.plist
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>com.apple.developer.carplay-maps</key>
-            <true/>
-            <key>com.apple.developer.playable-content</key>
-            <true/>
-        </dict>
-        </plist>
-        EOF
-
-        # ملف نظام تشغيل الكاربلاي
-        cat <<EOF > CarPlayFinal/CarPlayFinal/Info.plist
-        <?xml version="1.0" encoding="UTF-8"?>
         <plist version="1.0">
         <dict>
             <key>CFBundleIdentifier</key>
             <string>com.yazan.carplayfinal</string>
             <key>CFBundleName</key>
-            <string>CarPlayFinal</string>
+            <string>CarPlayHub</string>
+            <key>CFBundleExecutable</key>
+            <string>CarPlayHub</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
             <key>CFBundleShortVersionString</key>
             <string>1.0</string>
             <key>CFBundleVersion</key>
@@ -61,24 +63,20 @@ jobs:
                     </array>
                 </dict>
             </dict>
+            <key>com.apple.developer.carplay-maps</key>
+            <true/>
+            <key>com.apple.developer.playable-content</key>
+            <true/>
         </dict>
         </plist>
         EOF
 
-    - name: Compile and Archive
-      run: |
-        cd CarPlayFinal
-        xcodebuild archive -workspace . -scheme CarPlayFinal -configuration Release -archivePath $RUNNER_TEMP/CarPlayFinal.xcarchive CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
-
-    - name: Packaging to IPA
-      run: |
-        mkdir -p $RUNNER_TEMP/Payload
-        cp -r $RUNNER_TEMP/CarPlayFinal.xcarchive/Products/Applications/*.app $RUNNER_TEMP/Payload/
-        cd $RUNNER_TEMP && zip -r CarPlayFinal.ipa Payload
-
-    - name: Upload Artifact
+        # 5. ضغط الملف بصيغة ipa النهائية جاهزة للتثبيت
+        zip -r CarPlayFinal.ipa Payload
+        
+    - name: Upload Finished IPA
       uses: actions/upload-artifact@v4
       with:
         name: CarPlay-Final-TrollStore
-        path: ${{ runner.temp }}/CarPlayFinal.ipa
+        path: CarPlayFinal.ipa
         
