@@ -47,7 +47,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                 gridButtons.append(btn)
             }
             
-            // التعديل هنا: تم تغيير التسمية لـ gridButtons ليوافق شروط أبل ويختفي خطأ صورة 41795.jpg
             let gridTemplate = CPGridTemplate(title: "تطبيقاتي المضافة", gridButtons: gridButtons)
             self.interfaceController?.setRootTemplate(gridTemplate, animated: true)
         }
@@ -77,12 +76,4 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         syncTimer?.invalidate()
         self.interfaceController = nil
     }
-}
-
-// هيكل البيانات المطلوب لتعريف التطبيقات
-struct CarAppItem: Identifiable, Codable {
-    let id: String
-    let name: String
-    let url: String
-    let icon: String
 }
