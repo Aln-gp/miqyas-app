@@ -1,14 +1,6 @@
 import SwiftUI
 import ReplayKit
 
-// تعريف الهيكل هنا في البداية عشان المترجم يشوفه فوراً
-struct CarAppItem: Identifiable, Codable {
-    let id: String
-    let name: String
-    let url: String
-    let icon: String
-}
-
 struct PhoneMainView: View {
     let availableApps = [
         CarAppItem(id: "yt", name: "YouTube", url: "https://www.youtube.com", icon: "play.rectangle.fill"),
@@ -17,48 +9,58 @@ struct PhoneMainView: View {
         CarAppItem(id: "tw", name: "X / Twitter", url: "https://www.x.com", icon: "message.fill")
     ]
     
-    @State private var addedAppIDs: [String] = []
+    @State private var addedAppIDs: [String] = ["yt", "tt", "go", "tw"]
     @State private var isMirroring = false
     let recorder = RPScreenRecorder.shared()
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                VStack(alignment: .leading) {
-                    Text("بث الشاشة الكامل للسيارة")
-                        .font(.caption).foregroundColor(.gray).padding(.horizontal)
+            VStack(spacing: 25) {
+                // قسم البث الحقيقي
+                VStack {
+                    Text("بث شاشة الآيفون كاملة للسيارة")
+                        .font(.headline).foregroundColor(.primary)
                     
-                    Button(action: toggleMirroring) {
+                    Button(action: toggleRealMirroring) {
                         HStack {
-                            Image(systemName: isMirroring ? "stop.circle.fill" : "tv.and.mediabox.fill")
-                            Text(isMirroring ? "إيقاف بث شاشة الآيفون" : "بدء بث الشاشة المباشر")
+                            Image(systemName: isMirroring ? "stop.fill" : "play.fill")
+                            Text(isMirroring ? "إيقاف البث المباشر" : "بدء بث الشاشة الحقيقي")
                         }
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(isMirroring ? Color.red : Color.blue)
-                        .foregroundColor(.white).cornerRadius(10).padding(.horizontal)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(isMirroring ? Color.red : Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .shadow(radius: 4)
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.vertical, 10).background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(15)
+                .shadow(color: Color.black.withAlphaComponent(0.1), radius: 5, x: 0, y: 2)
                 
-                Text("إضافة تطبيقات ومتصفحات لشاشة السيارة")
-                    .font(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
+                // إدارة التطبيقات
+                Text("تخصيص تطبيقات شاشة السيارة")
+                    .font(.subheadline).foregroundColor(.gray).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
                 
                 List(availableApps) { app in
                     HStack {
-                        Image(systemName: app.icon).font(.title2).frame(width: 40)
-                        Text(app.name).font(.headline)
+                        Image(systemName: app.icon).foregroundColor(.blue).font(.title3).frame(width: 35)
+                        Text(app.name).font(.body)
                         Spacer()
                         
                         Button(action: { toggleApp(app.id) }) {
-                            Image(systemName: addedAppIDs.contains(app.id) ? "checkmark.circle.fill" : "plus.circle.fill")
-                                .foregroundColor(.green)
+                            Image(systemName: addedAppIDs.contains(app.id) ? "checkmark.seal.fill" : "plus.circle")
+                                .foregroundColor(addedAppIDs.contains(app.id) ? .green : .gray)
                                 .font(.title2)
                         }
                     }
                 }
+                .listStyle(InsetGroupedListStyle())
             }
-            .navigationTitle("ريموت الكاربلاي")
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Yazan CarPlay")
             .onAppear(perform: loadSettings)
         }
     }
@@ -70,10 +72,11 @@ struct PhoneMainView: View {
     }
     
     func loadSettings() {
-        addedAppIDs = UserDefaults.standard.stringArray(forKey: "CarPlayEnabledApps") ?? []
+        addedAppIDs = UserDefaults.standard.stringArray(forKey: "CarPlayEnabledApps") ?? ["yt", "tt", "go", "tw"]
+        isMirroring = UserDefaults.standard.bool(forKey: "IsScreenMirroringActive")
     }
     
-    func toggleMirroring() {
+    func toggleRealMirroring() {
         if isMirroring {
             recorder.stopCapture { _ in
                 DispatchQueue.main.async {
@@ -82,7 +85,7 @@ struct PhoneMainView: View {
                 }
             }
         } else {
-            recorder.startCapture(handler: { _, _, _ in }) { error in
+            recorder.startCapture(handler: { (_, _, _) in }) { error in
                 if error == nil {
                     DispatchQueue.main.async {
                         self.isMirroring = true
