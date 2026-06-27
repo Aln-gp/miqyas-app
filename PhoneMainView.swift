@@ -1,7 +1,6 @@
 import SwiftUI
 import ReplayKit
 
-// الـ Struct الأساسي اللي كان ناقص وتسبب بالخطأ في الصورة 41808.jpg
 struct CarAppItem: Identifiable, Codable {
     let id: String
     let name: String
@@ -24,7 +23,6 @@ struct PhoneMainView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 25) {
-                // قسم البث الحقيقي
                 VStack {
                     Text("بث شاشة الآيفون كاملة للسيارة")
                         .font(.headline).foregroundColor(.primary)
@@ -46,9 +44,8 @@ struct PhoneMainView: View {
                 .padding()
                 .background(Color(.systemBackground))
                 .cornerRadius(15)
-                .shadow(color: Color.black.withAlphaComponent(0.1), radius: 5, x: 0, y: 2)
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2) // تصحيح الخطأ هنا
                 
-                // إدارة التطبيقات
                 Text("تخصيص تطبيقات شاشة السيارة")
                     .font(.subheadline).foregroundColor(.gray).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
                 
