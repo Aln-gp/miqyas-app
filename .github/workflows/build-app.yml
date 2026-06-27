@@ -1,4 +1,4 @@
-name: Najd AI Ultimate Full Platform Builder
+name: Najd AI Premium Full Platform Builder
 
 on:
   push:
@@ -46,7 +46,11 @@ jobs:
         echo "    return MaterialApp(" >> lib/main.dart
         echo "      title: 'Najd AI'," >> lib/main.dart
         echo "      debugShowCheckedModeBanner: false," >> lib/main.dart
-        echo "      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: const Color(0xFF0F0F10))," >> lib/main.dart
+        echo "      theme: ThemeData.dark().copyWith(" >> lib/main.dart
+        echo "        scaffoldBackgroundColor: const Color(0xFF0D0E12)," >> lib/main.dart
+        echo "        primaryColor: const Color(0xFF2F80ED)," >> lib/main.dart
+        echo "        colorScheme: const ColorScheme.dark(primary: Color(0xFF2F80ED), surface: Color(0xFF181A20))," >> lib/main.dart
+        echo "      )," >> lib/main.dart
         echo "      home: const AuthScreen()," >> lib/main.dart
         echo "    );" >> lib/main.dart
         echo "  }" >> lib/main.dart
@@ -59,34 +63,80 @@ jobs:
         echo "class _AuthScreenState extends State<AuthScreen> {" >> lib/main.dart
         echo "  final _email = TextEditingController();" >> lib/main.dart
         echo "  final _pass = TextEditingController();" >> lib/main.dart
-        echo "  final String firebaseKey = String.fromEnvironment('FIREBASE_API_KEY');" >> lib/main.dart
         echo "  final String geminiKey = String.fromEnvironment('GEMINI_API_KEY');" >> lib/main.dart
         echo "  void _go() { Navigator.pushReplacement(context, MaterialPageRoute(builder: (c) => MainDashboard(geminiKey: geminiKey))); }" >> lib/main.dart
         echo "  @override" >> lib/main.dart
         echo "  Widget build(BuildContext context) {" >> lib/main.dart
         echo "    return Scaffold(" >> lib/main.dart
-        echo "      body: Center(" >> lib/main.dart
-        echo "        child: Padding(" >> lib/main.dart
-        echo "          padding: const EdgeInsets.all(24.0)," >> lib/main.dart
-        echo "          child: Column(" >> lib/main.dart
-        echo "            mainAxisAlignment: MainAxisAlignment.center," >> lib/main.dart
-        echo "            children: [" >> lib/main.dart
-        echo "              const Icon(Icons.psychology, size: 70, color: Color(0xFF2F80ED))," >> lib/main.dart
-        echo "              const SizedBox(height: 10)," >> lib/main.dart
-        echo "              const Text('🤖 منصة نجد AI', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold))," >> lib/main.dart
-        echo "              const Text('بواسطة يزن النفيعي', style: TextStyle(color: Colors.grey))," >> lib/main.dart
-        echo "              const SizedBox(height: 30)," >> lib/main.dart
-        echo "              TextField(controller: _email, decoration: const InputDecoration(labelText: 'البريد الإلكتروني', filled: true))," >> lib/main.dart
-        echo "              const SizedBox(height: 15)," >> lib/main.dart
-        echo "              TextField(controller: _pass, obscureText: true, decoration: const InputDecoration(labelText: 'كلمة المرور', filled: true))," >> lib/main.dart
-        echo "              const SizedBox(height: 25)," >> lib/main.dart
-        echo "              ElevatedButton(style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(50)), onPressed: _go, child: const Text('دخول مباشر'))," >> lib/main.dart
-        echo "            ]," >> lib/main.dart
+        echo "      body: Container(" >> lib/main.dart
+        echo "        decoration: const BoxDecoration(" >> lib/main.dart
+        echo "          gradient: LinearGradient(" >> lib/main.dart
+        echo "            colors: [Color(0xFF0D0E12), Color(0xFF141A29)]," >> lib/main.dart
+        echo "            begin: Alignment.topCenter," >> lib/main.dart
+        echo "            end: Alignment.bottomCenter," >> lib/main.dart
+        echo "          )," >> lib/main.dart
+        echo "        )," >> lib/main.dart
+        echo "        child: Center(" >> lib/main.dart
+        echo "          child: SingleChildScrollView(" >> lib/main.dart
+        echo "            padding: const EdgeInsets.all(28.0)," >> lib/main.dart
+        echo "            child: Column(" >> lib/main.dart
+        echo "              mainAxisAlignment: MainAxisAlignment.center," >> lib/main.dart
+        echo "              children: [" >> lib/main.dart
+        echo "                Container(" >> lib/main.dart
+        echo "                  padding: const EdgeInsets.all(16)," >> lib/main.dart
+        echo "                  decoration: BoxDecoration(color: const Color(0xFF2F80ED).withOpacity(0.15), shape: BoxShape.circle)," >> lib/main.dart
+        echo "                  child: const Icon(Icons.psychology, size: 80, color: Color(0xFF2F80ED))," >> lib/main.dart
+        echo "                )," >> lib/main.dart
+        echo "                const SizedBox(height: 20)," >> lib/main.dart
+        echo "                const Text('🤖 منصة نجد AI', style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, letterSpacing: 0.5))," >> lib/main.dart
+        echo "                const Text('المطور يزن النفيعي', style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500))," >> lib/main.dart
+        echo "                const SizedBox(height: 40)," >> lib/main.dart
+        echo "                TextField(" >> lib/main.dart
+        echo "                  controller: _email," >> lib/main.dart
+        echo "                  decoration: InputDecoration(" >> lib/main.dart
+        echo "                    labelText: 'البريد الإلكتروني'," >> lib/main.dart
+        echo "                    prefixIcon: const Icon(Icons.email_outlined, color: Colors.grey)," >> lib/main.dart
+        echo "                    filled: true," >> lib/main.dart
+        echo "                    fillColor: const Color(0xFF181A20)," >> lib/main.dart
+        echo "                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)," >> lib/main.dart
+        echo "                  )," >> lib/main.dart
+        echo "                )," >> lib/main.dart
+        echo "                const SizedBox(height: 18)," >> lib/main.dart
+        echo "                TextField(" >> lib/main.dart
+        echo "                  controller: _pass," >> lib/main.dart
+        echo "                  obscureText: true," >> lib/main.dart
+        echo "                  decoration: InputDecoration(" >> lib/main.dart
+        echo "                    labelText: 'كلمة المرور'," >> lib/main.dart
+        echo "                    prefixIcon: const Icon(Icons.lock_outline, color: Colors.grey)," >> lib/main.dart
+        echo "                    filled: true," >> lib/main.dart
+        echo "                    fillColor: const Color(0xFF181A20)," >> lib/main.dart
+        echo "                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)," >> lib/main.dart
+        echo "                  )," >> lib/main.dart
+        echo "                )," >> lib/main.dart
+        echo "                const SizedBox(height: 35)," >> lib/main.dart
+        echo "                ElevatedButton(" >> lib/main.dart
+        echo "                  style: ElevatedButton.styleFrom(" >> lib/main.dart
+        echo "                    backgroundColor: const Color(0xFF2F80ED)," >> lib/main.dart
+        echo "                    foregroundColor: Colors.white," >> lib/main.dart
+        echo "                    minimumSize: const Size.fromHeight(56)," >> lib/main.dart
+        echo "                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))," >> lib/main.dart
+        echo "                    elevation: 4," >> lib/main.dart
+        echo "                  )," >> lib/main.dart
+        echo "                  onPressed: _go," >> lib/main.dart
+        echo "                  child: const Text('دخول مباشر', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))," >> lib/main.dart
+        echo "                )," >> lib/main.dart
+        echo "              ]," >> lib/main.dart
+        echo "            )," >> lib/main.dart
         echo "          )," >> lib/main.dart
         echo "        )," >> lib/main.dart
         echo "      )," >> lib/main.dart
         echo "    );" >> lib/main.dart
         echo "  }" >> lib/main.dart
+        echo "}" >> lib/main.dart
+        echo "class Message {" >> lib/main.dart
+        echo "  final String text;" >> lib/main.dart
+        echo "  final bool isUser;" >> lib/main.dart
+        echo "  Message(this.text, this.isUser);" >> lib/main.dart
         echo "}" >> lib/main.dart
         echo "class MainDashboard extends StatefulWidget {" >> lib/main.dart
         echo "  final String geminiKey;" >> lib/main.dart
@@ -96,21 +146,24 @@ jobs:
         echo "}" >> lib/main.dart
         echo "class _MainDashboardState extends State<MainDashboard> {" >> lib/main.dart
         echo "  final _controller = TextEditingController();" >> lib/main.dart
-        echo "  final List<String> _chats = [];" >> lib/main.dart
+        echo "  final List<Message> _messages = [];" >> lib/main.dart
         echo "  bool _loading = false;" >> lib/main.dart
         echo "  Future<void> _send(String t) async {" >> lib/main.dart
         echo "    if (t.trim().isEmpty) return;" >> lib/main.dart
-        echo "    setState(() { _chats.add('أنت: \$t'); _loading = true; });" >> lib/main.dart
+        echo "    setState(() { _messages.add(Message(t, true)); _loading = true; });" >> lib/main.dart
         echo "    _controller.clear();" >> lib/main.dart
         echo "    final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=\${widget.geminiKey}');" >> lib/main.dart
         echo "    try {" >> lib/main.dart
-        echo "      final res = await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'contents': [{'parts': [{'text': 'أنت نجد AI من تطوير المبرمج يزن النفيعي من الطائف. أجب باختصار واعتزاز بمشاريع يزن مثل Black-link OS و BeAna Sport OS. السؤال: ' + t}]}]}));" >> lib/main.dart
+        echo "      final res = await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'contents': [{'parts': [{'text': 'أنت نجد AI من تطوير المبرمج العبقري يزن النفيعي من الطائف. أجب باختصار وبأسلوب ذكي وفخم واعتزاز بمشاريع يزن مثل Black-link OS و BeAna Sport OS. السؤال: ' + t}]}]}));" >> lib/main.dart
         echo "      if (res.statusCode == 200) {" >> lib/main.dart
         echo "        var d = jsonDecode(res.body);" >> lib/main.dart
-        echo "        setState(() { _chats.add('نجد AI: ' + d['candidates'][0]['content']['parts'][0]['text']); });" >> lib/main.dart
+        echo "        String reply = d['candidates'][0]['content']['parts'][0]['text'];" >> lib/main.dart
+        echo "        setState(() { _messages.add(Message(reply, false)); });" >> lib/main.dart
+        echo "      } else {" >> lib/main.dart
+        echo "        setState(() { _messages.add(Message('❌ خطأ من السيرفر: عذراً يزن يرجى التحقق من الـ API Key الخاص بك', false)); });" >> lib/main.dart
         echo "      }" >> lib/main.dart
         echo "    } catch (e) {" >> lib/main.dart
-        echo "      setState(() { _chats.add('❌ خطأ في الاتصال بنجد AI'); });" >> lib/main.dart
+        echo "      setState(() { _messages.add(Message('❌ خطأ في الاتصال بنجد AI. يرجى مراجعة الشبكة.', false)); });" >> lib/main.dart
         echo "    } finally {" >> lib/main.dart
         echo "      setState(() { _loading = false; });" >> lib/main.dart
         echo "    }" >> lib/main.dart
@@ -118,18 +171,64 @@ jobs:
         echo "  @override" >> lib/main.dart
         echo "  Widget build(BuildContext context) {" >> lib/main.dart
         echo "    return Scaffold(" >> lib/main.dart
-        echo "      appBar: AppBar(title: const Text('🤖 نجد AI - اللوحة الذكية'))," >> lib/main.dart
+        echo "      appBar: AppBar(" >> lib/main.dart
+        echo "        title: const Text('🤖 نجد AI - اللوحة الذكية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))," >> lib/main.dart
+        echo "        backgroundColor: const Color(0xFF181A20)," >> lib/main.dart
+        echo "        elevation: 0," >> lib/main.dart
+        echo "        centerTitle: true," >> lib/main.dart
+        echo "      )," >> lib/main.dart
         echo "      body: Column(" >> lib/main.dart
         echo "        children: [" >> lib/main.dart
-        echo "          Expanded(child: ListView.builder(itemCount: _chats.length, itemBuilder: (c, i) => ListTile(title: Text(_chats[i]))))," >> lib/main.dart
-        echo "          if (_loading) const LinearProgressIndicator()," >> lib/main.dart
+        echo "          Expanded(" >> lib/main.dart
+        echo "            child: ListView.builder(" >> lib/main.dart
+        echo "              padding: const EdgeInsets.all(16)," >> lib/main.dart
+        echo "              itemCount: _messages.length," >> lib/main.dart
+        echo "              itemBuilder: (c, i) {" >> lib/main.dart
+        echo "                final m = _messages[i];" >> lib/main.dart
+        echo "                return Align(" >> lib/main.dart
+        echo "                  alignment: m.isUser ? Alignment.centerRight : Alignment.centerLeft," >> lib/main.dart
+        echo "                  child: Container(" >> lib/main.dart
+        echo "                    margin: const EdgeInsets.symmetric(vertical: 6)," >> lib/main.dart
+        echo "                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12)," >> lib/main.dart
+        echo "                    decoration: BoxDecoration(" >> lib/main.dart
+        echo "                      color: m.isUser ? const Color(0xFF2F80ED) : const Color(0xFF181A20)," >> lib/main.dart
+        echo "                      borderRadius: BorderRadius.only(" >> lib/main.dart
+        echo "                        topLeft: const Radius.circular(16)," >> lib/main.dart
+        echo "                        topRight: const Radius.circular(16)," >> lib/main.dart
+        echo "                        bottomLeft: m.isUser ? const Radius.circular(16) : const Radius.circular(0)," >> lib/main.dart
+        echo "                        bottomRight: m.isUser ? const Radius.circular(0) : const Radius.circular(16)," >> lib/main.dart
+        echo "                      )," >> lib/main.dart
+        echo "                    )," >> lib/main.dart
+        echo "                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75)," >> lib/main.dart
+        echo "                    child: Text(m.text, style: TextStyle(color: Colors.white, fontSize: 15, height: 1.3))," >> lib/main.dart
+        echo "                  )," >> lib/main.dart
+        echo "                );" >> lib/main.dart
+        echo "              }," >> lib/main.dart
+        echo "            )," >> lib/main.dart
+        echo "          )," >> lib/main.dart
+        echo "          if (_loading) const Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: LinearProgressIndicator(minHeight: 2, backgroundColor: Colors.transparent))," >> lib/main.dart
         echo "          Container(" >> lib/main.dart
-        echo "            padding: const EdgeInsets.all(8)," >> lib/main.dart
-        echo "            child: Row(" >> lib/main.dart
-        echo "              children: [" >> lib/main.dart
-        echo "                Expanded(child: TextField(controller: _controller, decoration: const InputDecoration(hintText: 'اسأل نجد AI...')))," >> lib/main.dart
-        echo "                IconButton(icon: const Icon(Icons.send), onPressed: () => _send(_controller.text))," >> lib/main.dart
-        echo "              ]," >> lib/main.dart
+        echo "            padding: const EdgeInsets.all(12)," >> lib/main.dart
+        echo "            decoration: const BoxDecoration(color: Color(0xFF181A20))," >> lib/main.dart
+        echo "            child: SafeArea(" >> lib/main.dart
+        echo "              child: Row(" >> lib/main.dart
+        echo "                children: [" >> lib/main.dart
+        echo "                  Expanded(" >> lib/main.dart
+        echo "                    child: TextField(" >> lib/main.dart
+        echo "                      controller: _controller," >> lib/main.dart
+        echo "                      decoration: InputDecoration(" >> lib/main.dart
+        echo "                        hintText: 'اسأل نجد AI...'," >> lib/main.dart
+        echo "                        border: InputBorder.none," >> lib/main.dart
+        echo "                        contentPadding: const EdgeInsets.symmetric(horizontal: 12)," >> lib/main.dart
+        echo "                      )," >> lib/main.dart
+        echo "                    )," >> lib/main.dart
+        echo "                  )," >> lib/main.dart
+        echo "                  IconButton(" >> lib/main.dart
+        echo "                    icon: const Icon(Icons.send_rounded, color: Color(0xFF2F80ED))," >> lib/main.dart
+        echo "                    onPressed: () => _send(_controller.text)," >> lib/main.dart
+        echo "                  )," >> lib/main.dart
+        echo "                ]," >> lib/main.dart
+        echo "              )," >> lib/main.dart
         echo "            )," >> lib/main.dart
         echo "          )" >> lib/main.dart
         echo "        ]," >> lib/main.dart
