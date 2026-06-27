@@ -1,6 +1,14 @@
 import SwiftUI
 import ReplayKit
 
+// الـ Struct الأساسي اللي كان ناقص وتسبب بالخطأ في الصورة 41808.jpg
+struct CarAppItem: Identifiable, Codable {
+    let id: String
+    let name: String
+    let url: String
+    let icon: String
+}
+
 struct PhoneMainView: View {
     let availableApps = [
         CarAppItem(id: "yt", name: "YouTube", url: "https://www.youtube.com", icon: "play.rectangle.fill"),
