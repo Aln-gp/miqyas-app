@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct CarPlaySuperApp: App {
+struct CarPlayBrowserApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
