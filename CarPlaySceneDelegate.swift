@@ -38,17 +38,12 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             window.addSubview(refreshBtn)
         }
         
-        // الحيلة البديلة: استخدام قالب تشغيل المحتوى الكلاسيكي المسموح به في كل الشهادات العامة والمجانية
-        let playableTemplate = CPPlayableContentTemplate()
-        self.interfaceController?.setRootTemplate(playableTemplate, animated: false, completion: nil)
+        // الحل القاطع: استخدام قالب الشبكة الرسمي والمضمون 100% في مكتبة CarPlay
+        let gridTemplate = CPGridTemplate(title: "Yazan Web", gridButtons: [])
+        self.interfaceController?.setRootTemplate(gridTemplate, animated: false, completion: nil)
     }
     
     @objc func refreshPage() {
         carWebView?.reload()
-    }
-    
-    func templateApplicationScene(_ templateApplicationScene: CPTemplateApplicationScene, didDisconnectFrom interfaceController: CPInterfaceController) {
-        self.interfaceController = nil
-        self.carWindow = nil
     }
 }
