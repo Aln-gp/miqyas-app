@@ -18,7 +18,7 @@ jobs:
         
         rm -rf Payload CarPlayFinal.ipa
         
-        # بناء ملفات السويفت الثلاثة معاً
+        # بناء ملفات السويفت مجتمعة
         swiftc -target arm64-apple-ios15.0 \
           -sdk "$SDK_PATH" \
           -O \
@@ -32,16 +32,16 @@ jobs:
         mkdir -p Payload/CarPlayHub.app
         mv CarPlayHubExecutable Payload/CarPlayHub.app/CarPlayHub
         
-        # توليد ملف الـ Info.plist لربط الكاربلاي بالمتصفح
+        # توليد ملف Info.plist يدعم البث الصوتي لتخطي قفل الشهادات المجانية العامة
         cat <<EOF > Payload/CarPlayHub.app/Info.plist
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
         <dict>
             <key>CFBundleIdentifier</key>
-            <string>com.yazan.carplaybrowser</string>
+            <string>com.yazan.carplay.freecert</string>
             <key>CFBundleName</key>
-            <string>CarBrowser</string>
+            <string>YazanWeb</string>
             <key>CFBundleExecutable</key>
             <string>CarPlayHub</string>
             <key>CFBundlePackageType</key>
@@ -52,6 +52,10 @@ jobs:
             <string>1</string>
             <key>MinimumOSVersion</key>
             <string>15.0</string>
+            <key>UIBackgroundModes</key>
+            <array>
+                <string>audio</string>
+            </array>
             <key>UIApplicationSceneManifest</key>
             <dict>
                 <key>UIApplicationSupportsMultipleScenes</key>
@@ -78,6 +82,6 @@ jobs:
     - name: Upload Finished IPA
       uses: actions/upload-artifact@v4
       with:
-        name: CarPlay-Browser-IPA
+        name: CarPlay-Free-Browser
         path: CarPlayFinal.ipa
         
