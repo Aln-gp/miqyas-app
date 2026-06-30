@@ -2,7 +2,7 @@ import CarPlay
 import UIKit
 import WebKit
 
-class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPMapTemplateDelegate {
+class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     
     var interfaceController: CPInterfaceController?
     var carWindow: CPWindow?
@@ -12,7 +12,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPM
         self.interfaceController = interfaceController
         self.carWindow = window
         
-        // إعداد متصفح الويب بكامل مساحة شاشة السيارة
+        // إعداد المتصفح وتكبير الحجم على كامل الشاشة
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
@@ -20,12 +20,12 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPM
         let webViewFrame = CGRect(x: 0, y: 0, width: window.frame.width, height: window.frame.height)
         carWebView = WKWebView(frame: webViewFrame, configuration: config)
         
-        // تغيير الـ User Agent لفتح نسخة الآيباد الكاملة لتخطي حجب الميديا
+        // إيهام النظام بأنه آيباد لتخطي الحجب وتشغيل اللمس والفيديوهات كاملة
         carWebView?.customUserAgent = "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
         
         if let web = carWebView {
             window.addSubview(web)
-            // فتح محرك البحث الرئيسي جوجل
+            // فتح جوجل مباشرة
             web.load(URLRequest(url: URL(string: "https://www.google.com")!))
             
             // زر التحديث العائم
@@ -38,10 +38,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate, CPM
             window.addSubview(refreshBtn)
         }
         
-        // إنشاء قالب الخرائط الرسمي وتفعيله
-        let mapTemplate = CPMapTemplate()
-        mapTemplate.mapDelegate = self
-        self.interfaceController?.setRootTemplate(mapTemplate, animated: false, completion: nil)
+        // الحيلة البديلة: استخدام قالب تشغيل المحتوى الكلاسيكي المسموح به في كل الشهادات العامة والمجانية
+        let playableTemplate = CPPlayableContentTemplate()
+        self.interfaceController?.setRootTemplate(playableTemplate, animated: false, completion: nil)
     }
     
     @objc func refreshPage() {
