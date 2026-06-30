@@ -8,29 +8,27 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     var carWindow: CPWindow?
     var carWebView: WKWebView?
     
-    // الدالة الرسمية التي تطلقها السيارة عند الاتصال
     func templateApplicationScene(_ templateApplicationScene: CPTemplateApplicationScene, didConnect interfaceController: CPInterfaceController, to window: CPWindow) {
         self.interfaceController = interfaceController
         self.carWindow = window
         
-        // إعداد المتصفح الحقيقي للسيارة مع تخطي قيود أبل للميديا
+        // إعداد المتصفح وتعديل الحجم ليتناسب مع شاشة السيارة
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
         
-        // إجبار المتصفح على اتخاذ حجم شاشة السيارة بالكامل
         let webViewFrame = CGRect(x: 0, y: 0, width: window.frame.width, height: window.frame.height)
         carWebView = WKWebView(frame: webViewFrame, configuration: config)
         
-        // تغيير الـ User Agent ليوهم المواقع أنه جهاز iPad حقيقي عشان تفتح النسخة الكاملة للموقع وتشتغل الفيديوهات
+        // إيهام المواقع بأنه آيباد لتشغيل الفيديوهات والمواقع كاملة
         carWebView?.customUserAgent = "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
         
         if let web = carWebView {
             window.addSubview(web)
-            // فتح محرك بحث جوجل كصفحة رئيسية ومنها تنطلق لأي موقع
+            // تشغيل جوجل كمحرك بحث رئيسي
             web.load(URLRequest(url: URL(string: "https://www.google.com")!))
             
-            // زر تحديث الصفحة (Refresh) عائم فوق المتصفح في حال علّق الاتصال
+            // زر التحديث العائم
             let refreshBtn = UIButton(frame: CGRect(x: 15, y: 15, width: 45, height: 45))
             refreshBtn.setImage(UIImage(systemName: "arrow.clockwise.circle.fill"), for: .normal)
             refreshBtn.tintColor = .green
@@ -40,9 +38,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             window.addSubview(refreshBtn)
         }
         
-        // إنشاء واجهة فارغة في الخلفية لتلبية متطلبات النظام
-        let template = CPBlankTemplate()
-        self.interfaceController?.setRootTemplate(template, animated: false, completion: nil)
+        // تصحيح الخطأ: استخدام template رسمي موجود في المكتبة لتجنب خطأ السطر 80
+        let infoTemplate = CPInformationTemplate(title: "البحث", layout: .leading, items: [], actions: [])
+        self.interfaceController?.setRootTemplate(infoTemplate, animated: false, completion: nil)
     }
     
     @objc func refreshPage() {
