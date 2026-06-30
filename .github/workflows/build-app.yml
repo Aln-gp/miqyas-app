@@ -1,114 +1,83 @@
-name: Najd AI Multi-Platform Production Builder
+name: Build CarPlay Browser App
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   build:
-    name: Build Najd AI Platform
-    runs-on: macos-latest
-
+    runs-on: macos-14
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    - name: Set up Java Environment
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-
-    - name: Set up Flutter Framework
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.x'
-        channel: 'stable'
-
-    - name: Initialize Project Configurations & Dependencies
+    - name: Compile and Bundle IPA
       run: |
-        # الكود مهيأ ليعمل مباشرة في المجلد الرئيسي للمستودع
-        if [ -f "pubspec.yaml" ]; then
-          flutter pub get
-          flutter pub add http flutter_tts || true
-        else
-          echo "Waiting for project files to be created directly in GitHub..."
-        fi
-
-    - name: Build Android Deployment Package (APK)
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
-      run: |
-        if [ -f "pubspec.yaml" ]; then
-          flutter build apk --release \
-            --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-            --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
-            --dart-define=PACKAGE_NAME="com.Alnofaie.najdai"
-        fi
-
-    - name: Build iOS Deployment Package (Unsigned IPA)
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
-      run: |
-        if [ -f "pubspec.yaml" ]; then
-          flutter build ios --release --no-codesign \
-            --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-            --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
-            --dart-define=BUNDLE_ID="com.najd.ai"
-        fi
-
-    - name: Build macOS Desktop Application
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
-      run: |
-        if [ -f "pubspec.yaml" ]; then
-          flutter build macos --release \
-            --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-            --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
-            --dart-define=BUNDLE_ID="com.najd.ai.macos"
-        fi
-
-    - name: Build Web Platform Distribution
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
-      run: |
-        if [ -f "pubspec.yaml" ]; then
-          flutter build web --release \
-            --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-            --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
-        fi
-
-    - name: Upload Android APK Artifact
+        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+        
+        rm -rf Payload CarPlayFinal.ipa
+        
+        # بناء ملفات السويفت الثلاثة معاً
+        swiftc -target arm64-apple-ios15.0 \
+          -sdk "$SDK_PATH" \
+          -O \
+          *.swift \
+          -framework SwiftUI \
+          -framework CarPlay \
+          -framework WebKit \
+          -module-name CarPlayHub \
+          -o CarPlayHubExecutable
+          
+        mkdir -p Payload/CarPlayHub.app
+        mv CarPlayHubExecutable Payload/CarPlayHub.app/CarPlayHub
+        
+        # توليد ملف الـ Info.plist لربط الكاربلاي بالمتصفح
+        cat <<EOF > Payload/CarPlayHub.app/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleIdentifier</key>
+            <string>com.yazan.carplaybrowser</string>
+            <key>CFBundleName</key>
+            <string>CarBrowser</string>
+            <key>CFBundleExecutable</key>
+            <string>CarPlayHub</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>CFBundleVersion</key>
+            <string>1</string>
+            <key>MinimumOSVersion</key>
+            <string>15.0</string>
+            <key>UIApplicationSceneManifest</key>
+            <dict>
+                <key>UIApplicationSupportsMultipleScenes</key>
+                <true/>
+                <key>UISceneConfigurations</key>
+                <dict>
+                    <key>CPTemplateApplicationSceneSessionRoleApplication</key>
+                    <array>
+                        <dict>
+                            <key>UISceneConfigurationName</key>
+                            <string>CarPlay</string>
+                            <key>UISceneDelegateClassName</key>
+                            <string>CarPlayHub.CarPlaySceneDelegate</string>
+                        </dict>
+                    </array>
+                </dict>
+            </dict>
+        </dict>
+        </plist>
+        EOF
+        
+        zip -r CarPlayFinal.ipa Payload
+        
+    - name: Upload Finished IPA
       uses: actions/upload-artifact@v4
       with:
-        name: najd-ai-android-build
-        path: build/app/outputs/flutter-apk/app-release.apk
-        if-no-files-found: ignore
-
-    - name: Upload iOS App Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: najd-ai-ios-build
-        path: build/ios/iphoneos/
-        if-no-files-found: ignore
-
-    - name: Upload macOS App Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: najd-ai-macos-build
-        path: build/macos/Build/Products/Release/
-        if-no-files-found: ignore
-
-    - name: Upload Web Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: najd-ai-web-build
-        path: build/web/
-        if-no-files-found: ignore
+        name: CarPlay-Browser-IPA
+        path: CarPlayFinal.ipa
         
