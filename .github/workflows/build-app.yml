@@ -27,10 +27,11 @@ jobs:
         flutter-version: '3.x'
         channel: 'stable'
 
-    - name: Initialize Project Configurations & Dependencies
+    - name: Initialize Project Configurations & Generate Platform Files
       run: |
+        # هذا الأمر السحري بينشئ مجلدات أندرويد وآيفون والويب المفقودة تلقائياً في السيرفر
+        flutter create . --overwrite --org com.Alnofaie
         flutter pub get
-        flutter pub add http flutter_tts || true
 
     - name: Build Android Deployment Package (APK)
       env:
@@ -39,8 +40,7 @@ jobs:
       run: |
         flutter build apk --release \
           --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
-          --dart-define=PACKAGE_NAME="com.Alnofaie.najdai"
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
 
     - name: Build iOS Deployment Package (Unsigned IPA)
       env:
@@ -49,8 +49,7 @@ jobs:
       run: |
         flutter build ios --release --no-codesign \
           --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
-          --dart-define=BUNDLE_ID="com.najd.ai"
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
 
     - name: Build macOS Desktop Application
       env:
@@ -59,8 +58,7 @@ jobs:
       run: |
         flutter build macos --release \
           --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
-          --dart-define=BUNDLE_ID="com.najd.ai.macos"
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
 
     - name: Build Web Platform Distribution
       env:
