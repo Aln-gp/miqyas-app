@@ -1,87 +1,97 @@
-name: Build CarPlay Browser App
+name: Najd AI Multi-Platform Production Builder
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
-    runs-on: macos-14
+    name: Build Najd AI Platform
+    runs-on: macos-latest
+
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
-    - name: Compile and Bundle IPA
+    - name: Set up Java Environment
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Set up Flutter Framework
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.x'
+        channel: 'stable'
+
+    - name: Initialize Project Configurations & Dependencies
       run: |
-        SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
-        
-        rm -rf Payload CarPlayFinal.ipa
-        
-        # بناء ملفات السويفت مجتمعة
-        swiftc -target arm64-apple-ios15.0 \
-          -sdk "$SDK_PATH" \
-          -O \
-          *.swift \
-          -framework SwiftUI \
-          -framework CarPlay \
-          -framework WebKit \
-          -module-name CarPlayHub \
-          -o CarPlayHubExecutable
-          
-        mkdir -p Payload/CarPlayHub.app
-        mv CarPlayHubExecutable Payload/CarPlayHub.app/CarPlayHub
-        
-        # توليد ملف Info.plist يدعم البث الصوتي لتخطي قفل الشهادات المجانية العامة
-        cat <<EOF > Payload/CarPlayHub.app/Info.plist
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleIdentifier</key>
-            <string>com.yazan.carplay.freecert</string>
-            <key>CFBundleName</key>
-            <string>YazanWeb</string>
-            <key>CFBundleExecutable</key>
-            <string>CarPlayHub</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleShortVersionString</key>
-            <string>1.0</string>
-            <key>CFBundleVersion</key>
-            <string>1</string>
-            <key>MinimumOSVersion</key>
-            <string>15.0</string>
-            <key>UIBackgroundModes</key>
-            <array>
-                <string>audio</string>
-            </array>
-            <key>UIApplicationSceneManifest</key>
-            <dict>
-                <key>UIApplicationSupportsMultipleScenes</key>
-                <true/>
-                <key>UISceneConfigurations</key>
-                <dict>
-                    <key>CPTemplateApplicationSceneSessionRoleApplication</key>
-                    <array>
-                        <dict>
-                            <key>UISceneConfigurationName</key>
-                            <string>CarPlay</string>
-                            <key>UISceneDelegateClassName</key>
-                            <string>CarPlayHub.CarPlaySceneDelegate</string>
-                        </dict>
-                    </array>
-                </dict>
-            </dict>
-        </dict>
-        </plist>
-        EOF
-        
-        zip -r CarPlayFinal.ipa Payload
-        
-    - name: Upload Finished IPA
+        flutter pub get
+        flutter pub add http flutter_tts || true
+
+    - name: Build Android Deployment Package (APK)
+      env:
+        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+        FIREBASE_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+      run: |
+        flutter build apk --release \
+          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
+          --dart-define=PACKAGE_NAME="com.Alnofaie.najdai"
+
+    - name: Build iOS Deployment Package (Unsigned IPA)
+      env:
+        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+        FIREBASE_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
+      run: |
+        flutter build ios --release --no-codesign \
+          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
+          --dart-define=BUNDLE_ID="com.najd.ai"
+
+    - name: Build macOS Desktop Application
+      env:
+        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+        FIREBASE_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
+      run: |
+        flutter build macos --release \
+          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY" \
+          --dart-define=BUNDLE_ID="com.najd.ai.macos"
+
+    - name: Build Web Platform Distribution
+      env:
+        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
+        FIREBASE_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+      run: |
+        flutter build web --release \
+          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
+          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
+
+    - name: Upload Android APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: CarPlay-Free-Browser
-        path: CarPlayFinal.ipa
+        name: najd-ai-android-build
+        path: build/app/outputs/flutter-apk/app-release.apk
+
+    - name: Upload iOS App Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-ai-ios-build
+        path: build/ios/iphoneos/
+
+    - name: Upload macOS App Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-ai-macos-build
+        path: build/macos/Build/Products/Release/
+
+    - name: Upload Web Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: najd-ai-web-build
+        path: build/web/
         
