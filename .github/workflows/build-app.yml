@@ -27,9 +27,14 @@ jobs:
         flutter-version: '3.x'
         channel: 'stable'
 
-    - name: Install Project Dependencies
+    - name: Initialize Project & Fix Build Configurations
       run: |
+        # توليد ملفات المنصات المفقودة
+        flutter create . --overwrite --org com.Alnofaie
         flutter pub get
+        
+        # أمر سحري لتعديل minSdkVersion تلقائياً داخل السيرفر لحل مشكلة تحليل الحزمة في أندرويد
+        sed -i '' 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
 
     - name: Build Android Deployment Package (APK)
       env:
@@ -90,3 +95,4 @@ jobs:
       with:
         name: najd-ai-web-build
         path: build/web/
+        
