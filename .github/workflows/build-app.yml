@@ -29,7 +29,7 @@ jobs:
 
     - name: Initialize Project Configurations & Generate Platform Files
       run: |
-        # هذا الأمر السحري بينشئ مجلدات أندرويد وآيفون والويب المفقودة تلقائياً في السيرفر
+        # إنشاء ملفات المنصات المفقودة تلقائياً في السيرفر لضمان وجود build.gradle
         flutter create . --overwrite --org com.Alnofaie
         flutter pub get
 
@@ -38,7 +38,10 @@ jobs:
         GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
         FIREBASE_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
       run: |
-        flutter build apk --release \
+        # تنظيف وبناء متوافق مع كافة المعالجات لحل مشكلة تحليل الحزمة
+        flutter clean
+        flutter pub get
+        flutter build apk --release --target-platform android-arm,android-arm64,android-x64 \
           --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
           --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
 
