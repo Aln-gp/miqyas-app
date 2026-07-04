@@ -46,18 +46,21 @@ jobs:
           echo '${{ secrets.FIREBASE_IOS_PLIST }}' > ios/Runner/GoogleService-Info.plist
         fi
         
-        # ربط مكاتب الفايربيس بالطريقة الحديثة المتوافقة 100% مع ملفات الـ kts والجراديل الكلاسيكية
+        # ربط مكاتب الفايربيس بالطريقة الحديثة المتوافقة 100% مع نظام الإضافات الجديد لملفات kts والجراديل الكلاسيكية
         if [ -f "android/build.gradle.kts" ]; then
-          # إدراج مكاتب جوجل لملف الإعدادات الرئيسي kts
-          sed -i '' 's|plugins {|plugins {\n    id("com.google.gms.google-services") version "4.4.1" apply false|' android/build.gradle.kts
-          # تفعيل الملحق داخل ملف تطبيق الأندرويد kts
+          # إضافة مستودع ومكتبة جوجل سرفيسز للنظام الجديد في أندرويد
+          echo 'buildscript { repositories { google(); mavenCentral() } dependencies { classpath("com.google.gms:google-services:4.4.1") } }' > temp_gradle.kts
+          cat android/build.gradle.kts >> temp_gradle.kts
+          mv temp_gradle.kts android/build.gradle.kts
+          
+          # تفعيل الملحق داخل ملف تطبيق الأندرويد kts بدون تعارض
           sed -i '' 's|plugins {|plugins {\n    id("com.google.gms.google-services")|' android/app/build.gradle.kts
         elif [ -f "android/build.gradle" ]; then
           sed -i '' 's|dependencies {|dependencies {\n        classpath "com.google.gms:google-services:4.3.15"|' android/build.gradle
           echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
         fi
 
-        # إضافة حزم فلوتر الأساسية للمنصة ولتطبيقات المستخدمين مع تعطيل فحص الـ WebAssembly المؤقت
+        # إضافة حزم فلوتر الأساسية للمنصة ولتطبيقات المستخدمين
         flutter pub add http flutter_tts image_picker file_picker firebase_core firebase_auth shared_preferences url_launcher
         flutter pub get
         
@@ -77,7 +80,7 @@ jobs:
       run: |
         # ملاحظة للمحرك البرمجي لـ نجد AI: قم بالتحكم بالأسطر أدناه تفعيلاً أو تعطيلاً بناءً على رغبة المستخدم:
         
-        # --- [منصة الويب] --- مع إضافة خيار تخطي فحص wasm عشان حزمة flutter_tts ما تعطل بناء الموقع
+        # --- [منصة الويب] ---
         flutter build web --release --no-wasm-dry-run --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV" --dart-define=FIREBASE_WEB_API_KEY="$WEB_API_KEY" --dart-define=FIREBASE_WEB_APP_ID="$WEB_APP_ID"
           
         # --- [منصة الأندرويد] ---
