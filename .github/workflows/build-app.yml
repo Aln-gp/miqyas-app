@@ -1,4 +1,4 @@
-name: Najd AI Project Auto-Builder
+name: Najd AI Dynamic Platform Builder
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build & Deploy Najd AI
+    name: Dynamic Multi-Platform Compiler
     runs-on: macos-latest
     permissions:
       contents: write
@@ -29,12 +29,13 @@ jobs:
 
     - name: Initialize Project & Install Packages
       run: |
-        flutter create . --overwrite --org com.Alnofaie
+        # إنشاء المشروع بلغة groovy لتسهيل حقن الإعدادات والملفات تلقائياً
+        flutter create . --overwrite --org com.Alnofaie --gradle-language groovy
         
-        # إضافة صلاحيات الإنترنت والأندرويد الأساسية
+        # حقن صلاحيات الأندرويد الأساسية للتطبيقات المستهدفة
         sed -i '' 's|<manifest .*|&\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>|' android/app/src/main/AndroidManifest.xml
         
-        # ربط الفايربيس من الـ Secrets للأندرويد والآيفون إن وجدت
+        # تجهيز مجلدات الخدمات والفايربيس إذا تم تمريرها من الـ Secrets
         mkdir -p android/app ios/Runner
         if [ ! -z "${{ secrets.FIREBASE_JSON_CONTENT }}" ]; then
           echo '${{ secrets.FIREBASE_JSON_CONTENT }}' > android/app/google-services.json
@@ -46,37 +47,48 @@ jobs:
         sed -i '' 's|dependencies {|dependencies {\n        classpath "com.google.gms:google-services:4.3.15"|' android/build.gradle
         echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
 
-        # تثبيت المكاتب المطلوبة لتشغيل الواجهة والذكاء الاصطناعي
-        flutter pub add http flutter_tts image_picker file_picker firebase_core firebase_auth
+        # إضافة حزم فلوتر الأساسية التي قد تحتاجها تطبيقات المستخدمين (الاتصال، اللغات، الصوت، والفايربيس)
+        flutter pub add http flutter_tts image_picker file_picker firebase_core firebase_auth shared_preferences url_launcher
         flutter pub get
         
         sed -i '' 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
 
-    - name: Build and Deploy Core Platforms
+    - name: Execute Conditional Building
       env:
         GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
         GH_TOKEN_ENV: ${{ secrets.GH_TOKEN }}
         WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
         WEB_APP_ID: ${{ secrets.FIREBASE_WEB_APP_ID }}
       run: |
-        # بناء الويب والأندرويد والآيفون وتمرير التوكن والمفاتيح لداخل الكود ليستخدمها نجد AI في التحديث الذاتي
-        flutter build web --release \
-          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=GH_TOKEN="$GH_TOKEN_ENV" \
-          --dart-define=FIREBASE_WEB_API_KEY="$WEB_API_KEY" \
-          --dart-define=FIREBASE_WEB_APP_ID="$WEB_APP_ID"
+        # ملاحظة للمحرك البرمجي لـ نجد AI: قم بالتحكم بالسطور أدناه تفعيلاً أو حظراً بناءً على رغبة المستخدم النصية:
+        
+        # --- [منصة الويب] ---
+        flutter build web --release --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV" --dart-define=FIREBASE_WEB_API_KEY="$WEB_API_KEY" --dart-define=FIREBASE_WEB_APP_ID="$WEB_APP_ID"
           
+        # --- [منصة الأندرويد] ---
         flutter build apk --release --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
+        
+        # --- [منصة الآيفون] ---
         flutter build ios --release --no-codesign --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
 
-    - name: Create Production Release
+    - name: Bundle iOS App into IPA Archive
+      run: |
+        # يتم تشغيل هذه الخطوة فقط في حال بناء نسخة الآيفون لتجميع الملف وتسهيل تحميله
+        if [ -d "build/ios/iphoneos/Runner.app" ]; then
+          mkdir -p build/ios/iphoneos/Payload
+          mv build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload/
+          cd build/ios/iphoneos && zip -r user_app_ios.ipa Payload
+        fi
+
+    - name: Deploy Selected Outputs to GitHub Releases
       uses: softprops/action-gh-release@v1
       with:
         files: |
           build/app/outputs/flutter-apk/app-release.apk
-          build/web/*
+          build/ios/iphoneos/user_app_ios.ipa
+          build/web/**
         token: ${{ secrets.GH_TOKEN }}
-        tag_name: v1.2.${{ github.run_number }}
-        name: نظام نجد للمزامنة والبرمجة التلقائية ${{ github.run_number }}
-        body: "تم إصدار النسخة بنجاح ومزامنتها مع خوادم قيت هاب للبرمجة والتطوير الذاتي بناءً على نصوص المستخدم الحرة."
+        tag_name: v4.0.${{ github.run_number }}
+        name: تطبيق مخصص المنصات جاهز للتحميل #${{ github.run_number }}
+        body: "تم بناء التطبيق وتجهيز المنصات المطلوبة بنجاح بواسطة محرك نجد AI الذكي لخدمة الجمهور."
         
