@@ -1,15 +1,15 @@
-name: Najd AI Multi-Platform Production Builder
+name: Najd AI Project Auto-Builder
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
-    name: Build Najd AI Platform
+    name: Build & Deploy Najd AI
     runs-on: macos-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout Repository
@@ -27,336 +27,56 @@ jobs:
         flutter-version: '3.x'
         channel: 'stable'
 
-    - name: Initialize Project & Inject Complete Najd AI App Code
+    - name: Initialize Project & Install Packages
       run: |
-        # 1. توليد الملفات الأساسية المفقودة
         flutter create . --overwrite --org com.Alnofaie
         
-        # 2. إضافة المكتبات المفقودة التي يطلبها كود الشات والصوت غصب في السيرفر
-        flutter pub add http flutter_tts
+        # إضافة صلاحيات الإنترنت والأندرويد الأساسية
+        sed -i '' 's|<manifest .*|&\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>|' android/app/src/main/AndroidManifest.xml
+        
+        # ربط الفايربيس من الـ Secrets للأندرويد والآيفون إن وجدت
+        mkdir -p android/app ios/Runner
+        if [ ! -z "${{ secrets.FIREBASE_JSON_CONTENT }}" ]; then
+          echo '${{ secrets.FIREBASE_JSON_CONTENT }}' > android/app/google-services.json
+        fi
+        if [ ! -z "${{ secrets.FIREBASE_IOS_PLIST }}" ]; then
+          echo '${{ secrets.FIREBASE_IOS_PLIST }}' > ios/Runner/GoogleService-Info.plist
+        fi
+        
+        sed -i '' 's|dependencies {|dependencies {\n        classpath "com.google.gms:google-services:4.3.15"|' android/build.gradle
+        echo "apply plugin: 'com.google.gms.google-services'" >> android/app/build.gradle
+
+        # تثبيت المكاتب المطلوبة لتشغيل الواجهة والذكاء الاصطناعي
+        flutter pub add http flutter_tts image_picker file_picker firebase_core firebase_auth
         flutter pub get
         
-        # 3. تعديل minSdkVersion لحل مشكلة تحليل الحزمة
         sed -i '' 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
-        
-        # 4. حقن الكود البرمجي النظيف والخالي من الأخطاء
-        cat << 'EOF' > lib/main.dart
-        import 'package:flutter/material.dart';
-        import 'package:http/http.dart' as http;
-        import 'package:flutter_tts/flutter_tts.dart';
-        import 'dart:convert';
 
-        void main() {
-          runApp(const NajdApp());
-        }
-
-        class NajdApp extends StatelessWidget {
-          const NajdApp({super.key});
-
-          @override
-          Widget build(BuildContext context) {
-            return MaterialApp(
-              title: 'Najd AI',
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                brightness: Brightness.dark,
-                scaffoldBackgroundColor: const Color(0xff121212),
-              ),
-              home: const HomeScreen(),
-            );
-          }
-        }
-
-        class HomeScreen extends StatelessWidget {
-          const HomeScreen({super.key});
-
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('منصة نجد AI', style: TextStyle(fontWeight: FontWeight.bold)),
-                centerTitle: true,
-                backgroundColor: const Color(0xff1e1e1e),
-                elevation: 0,
-              ),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.blur_on_rounded,
-                      size: 120,
-                      color: Color(0xff10b981),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'مرحباً بك في نجد AI',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'المنصة الذكية الآمنة والمطورة',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[400]),
-                    ),
-                    const SizedBox(height: 50),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ChatScreen()),
-                        );
-                      },
-                      icon: const Icon(Icons.chat_bubble_outline, size: 24),
-                      label: const Text('ابدأ المحادثة الذكية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff059669),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        elevation: 5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-        }
-
-        class ChatScreen extends StatefulWidget {
-          const ChatScreen({super.key});
-
-          @override
-          State<ChatScreen> createState() => _ChatScreenState();
-        }
-
-        class _ChatScreenState extends State<ChatScreen> {
-          final TextEditingController _controller = TextEditingController();
-          final List<Map<String, String>> _messages = [];
-          final FlutterTts _flutterTts = FlutterTts();
-          bool _isLoading = false;
-
-          final String _apiKey = const String.fromEnvironment('GEMINI_API_KEY');
-
-          @override
-          void initState() {
-            super.initState();
-            _initTts();
-          }
-
-          void _initTts() async {
-            await _flutterTts.setLanguage("ar");
-            await _flutterTts.setSpeechRate(0.5);
-          }
-
-          Future<void> _speak(String text) async {
-            if (text.isNotEmpty) {
-              await _flutterTts.speak(text);
-            }
-          }
-
-          String _filterContent(String text) {
-            List<String> forbiddenWords = ['سبايك', 'كلب', 'حمار', 'وسخ'];
-            String filtered = text;
-            for (var word in forbiddenWords) {
-              filtered = filtered.replaceAll(word, '***');
-            }
-            return filtered;
-          }
-
-          Future<void> _sendMessage() async {
-            String rawText = _controller.text.trim();
-            if (rawText.isEmpty) return;
-
-            String userText = _filterContent(rawText);
-            _controller.clear();
-
-            setState(() {
-              _messages.add({"sender": "user", "text": userText});
-              _isLoading = true;
-            });
-
-            try {
-              final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$_apiKey');
-              final response = await http.post(
-                url,
-                headers: {'Content-Type': 'application/json'},
-                body: jsonEncode({
-                  "contents": [
-                    {
-                      "parts": [{"text": userText}]
-                    }
-                  ]
-                }),
-              );
-
-              if (response.statusCode == 200) {
-                final data = jsonDecode(response.body);
-                String botResponse = data['candidates'][0]['content']['parts'][0]['text'];
-                botResponse = _filterContent(botResponse);
-
-                setState(() {
-                  _messages.add({"sender": "najd", "text": botResponse});
-                });
-              } else {
-                setState(() {
-                  _messages.add({"sender": "najd", "text": "عذراً، واجهت مشكلة في الاتصال بالسيرفر."});
-                });
-              }
-            } catch (e) {
-              setState(() {
-                _messages.add({"sender": "najd", "text": "تأكت من اتصال الإنترنت ومفتاح الـ API."});
-              });
-            } finally {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-          }
-
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('مساعد نجد الذكي'),
-                backgroundColor: const Color(0xff1e1e1e),
-              ),
-              body: Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, index) {
-                        final msg = _messages[index];
-                        bool isUser = msg['sender'] == 'user';
-                        return Align(
-                          alignment: isUser ? Alignment.centerLeft : Alignment.centerRight,
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: isUser ? const Color(0xff047857) : const Color(0xff2a2a2a),
-                              borderRadius: BorderRadius.only(
-                                topLeft: const Radius.circular(16),
-                                topRight: const Radius.circular(16),
-                                bottomLeft: isUser ? Radius.zero : const Radius.circular(16),
-                                bottomRight: isUser ? const Radius.circular(16) : Radius.zero,
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  msg['text'] ?? '',
-                                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                                ),
-                                if (!isUser) ...[
-                                  const SizedBox(height: 8),
-                                  IconButton(
-                                    constraints: const BoxConstraints(),
-                                    padding: EdgeInsets.zero,
-                                    icon: const Icon(Icons.volume_up, color: Color(0xff34d399), size: 20),
-                                    onPressed: () => _speak(msg['text'] ?? ''),
-                                  )
-                                ]
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  if (_isLoading)
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: CircularProgressIndicator(color: Color(0xff34d399)),
-                    ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    color: const Color(0xff1e1e1e),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _controller,
-                            decoration: const InputDecoration(
-                              hintText: 'اكتب رسالتك هنا...',
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.send, color: Color(0xff34d399)),
-                          onPressed: _sendMessage,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-        }
-        EOF
-
-    - name: Build Android Deployment Package (APK)
+    - name: Build and Deploy Core Platforms
       env:
         GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+        GH_TOKEN_ENV: ${{ secrets.GH_TOKEN }}
+        WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+        WEB_APP_ID: ${{ secrets.FIREBASE_WEB_APP_ID }}
       run: |
-        flutter build apk --release \
-          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
-
-    - name: Build iOS Deployment Package (Unsigned IPA)
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
-      run: |
-        flutter build ios --release --no-codesign \
-          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
-
-    - name: Build macOS Desktop Application
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_IOS_API_KEY }}
-      run: |
-        flutter build macos --release \
-          --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
-
-    - name: Build Web Platform Distribution
-      env:
-        GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
-        FIREBASE_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
-      run: |
+        # بناء الويب والأندرويد والآيفون وتمرير التوكن والمفاتيح لداخل الكود ليستخدمها نجد AI في التحديث الذاتي
         flutter build web --release \
           --dart-define=GEMINI_API_KEY="$GEMINI_KEY" \
-          --dart-define=FIREBASE_API_KEY="$FIREBASE_KEY"
+          --dart-define=GH_TOKEN="$GH_TOKEN_ENV" \
+          --dart-define=FIREBASE_WEB_API_KEY="$WEB_API_KEY" \
+          --dart-define=FIREBASE_WEB_APP_ID="$WEB_APP_ID"
+          
+        flutter build apk --release --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
+        flutter build ios --release --no-codesign --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
 
-    - name: Upload Android APK Artifact
-      uses: actions/upload-artifact@v4
+    - name: Create Production Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: najd-ai-android-build
-        path: build/app/outputs/flutter-apk/app-release.apk
-
-    - name: Upload iOS App Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: najd-ai-ios-build
-        path: build/ios/iphoneos/
-
-    - name: Upload macOS App Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: najd-ai-macos-build
-        path: build/macos/Build/Products/Release/
-
-    - name: Upload Web Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: najd-ai-web-build
-        path: build/web/
+        files: |
+          build/app/outputs/flutter-apk/app-release.apk
+          build/web/*
+        token: ${{ secrets.GH_TOKEN }}
+        tag_name: v1.2.${{ github.run_number }}
+        name: نظام نجد للمزامنة والبرمجة التلقائية ${{ github.run_number }}
+        body: "تم إصدار النسخة بنجاح ومزامنتها مع خوادم قيت هاب للبرمجة والتطوير الذاتي بناءً على نصوص المستخدم الحرة."
         
