@@ -34,13 +34,16 @@ jobs:
 
     - name: Clean & Prepare Project Dependencies
       run: |
-        # 1. تنظيف كاش فلوتر بالكامل لضمان عدم تداخل الملفات التالفة
+        # 1. تنظيف الكاش
         flutter clean
         
-        # 2. تحميل الحزم والمكاتب بناءً على ملف pubspec.yaml الخاص بمشروعك الأصلي
+        # 2. تهيئة منصة الويب فقط إذا كان المجلد ناقصاً دون المساس بالأندرويد
+        flutter create . --platforms web
+        
+        # 3. تحميل المكاتب
         flutter pub get
 
-        # 3. ربط الفايربيس تلقائياً إذا كانت الرموز السرية متوفرة بدون المساس بملفاتك
+        # 4. ربط الفايربيس آلياً باستخدام علامات الاقتباس الآمنة للنصوص الطويلة
         if [ ! -z "${{ secrets.FIREBASE_TOKEN }}" ]; then
           echo '${{ secrets.FIREBASE_TOKEN }}' > firebase_key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/firebase_key.json"
@@ -83,5 +86,5 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
         tag_name: v4.0.${{ github.run_number }}
         name: تطبيق مقياس جاهز للتحميل #${{ github.run_number }}
-        body: "تم بناء منصات تطبيق مقياس بنجاح وبشكل رسمي عبر محرك نجد AI."
+        body: "تم بناء وتجهيز منصات تطبيق مقياس بنجاح واكتمال مجلد الويب الأصلي."
         
