@@ -32,18 +32,15 @@ jobs:
         npm install -g firebase-tools
         dart pub global activate flutterfire_cli
 
-    - name: Initialize Project & Install Packages
+    - name: Clean & Prepare Project Dependencies
       run: |
-        flutter create . --overwrite --org com.Alnofaie
+        # 1. تنظيف كاش فلوتر بالكامل لضمان عدم تداخل الملفات التالفة
+        flutter clean
         
-        if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
-          sed -i '' 's|<manifest .*|&\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>|' android/app/src/main/AndroidManifest.xml
-        fi
-        
-        flutter pub add http flutter_tts image_picker file_picker firebase_core firebase_auth shared_preferences url_launcher
+        # 2. تحميل الحزم والمكاتب بناءً على ملف pubspec.yaml الخاص بمشروعك الأصلي
         flutter pub get
 
-        # التفعيل المضمون عبر ملف الـ Service Account بدون حوسة تسجيل الدخول
+        # 3. ربط الفايربيس تلقائياً إذا كانت الرموز السرية متوفرة بدون المساس بملفاتك
         if [ ! -z "${{ secrets.FIREBASE_TOKEN }}" ]; then
           echo '${{ secrets.FIREBASE_TOKEN }}' > firebase_key.json
           export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/firebase_key.json"
@@ -59,8 +56,13 @@ jobs:
         GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
         GH_TOKEN_ENV: ${{ secrets.GH_TOKEN }}
       run: |
+        # --- [منصة الويب] ---
         flutter build web --release --no-wasm-dry-run --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
+          
+        # --- [منصة الأندرويد] ---
         flutter build apk --release --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
+        
+        # --- [منصة الآيفون] ---
         flutter build ios --release --no-codesign --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV"
 
     - name: Bundle iOS App into IPA Archive
@@ -80,6 +82,6 @@ jobs:
           build/web/**
         token: ${{ secrets.GH_TOKEN }}
         tag_name: v4.0.${{ github.run_number }}
-        name: تطبيق مخصص المنصات جاهز للتحميل #${{ github.run_number }}
-        body: "تم بناء التطبيق وتجهيز المنصات بنجاح بواسطة محرك نجد AI."
+        name: تطبيق مقياس جاهز للتحميل #${{ github.run_number }}
+        body: "تم بناء منصات تطبيق مقياس بنجاح وبشكل رسمي عبر محرك نجد AI."
         
