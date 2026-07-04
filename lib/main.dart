@@ -13,7 +13,7 @@ class NajdApp extends StatelessWidget {
       title: 'Najd AI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        brightness: Brightness.dark, // خلفية داكنة فخمة
+        brightness: Brightness.dark, // خلفية داكنة فخمة تناسب نجد
         primarySwatch: Colors.emerald,
         scaffoldBackgroundColor: const Color(0xff121212),
       ),
