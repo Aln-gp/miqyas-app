@@ -29,14 +29,17 @@ jobs:
 
     - name: Initialize Project & Inject Complete Najd AI App Code
       run: |
-        # 1. توليد الملفات المفقودة وتحديث المكتبات
+        # 1. توليد الملفات الأساسية المفقودة
         flutter create . --overwrite --org com.Alnofaie
+        
+        # 2. إضافة المكتبات المفقودة التي يطلبها كود الشات والصوت غصب في السيرفر
+        flutter pub add http flutter_tts
         flutter pub get
         
-        # 2. تعديل minSdkVersion لحل مشكلة تحليل الحزمة في أندرويد
+        # 3. تعديل minSdkVersion لحل مشكلة تحليل الحزمة
         sed -i '' 's/minSdkVersion .*/minSdkVersion 21/g' android/app/build.gradle || true
         
-        # 3. حقن الكود البرمجي الكامل والمتكامل للتطبيق داخل السيرفر
+        # 4. حقن الكود البرمجي النظيف والخالي من الأخطاء
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
         import 'package:http/http.dart' as http;
@@ -57,9 +60,7 @@ jobs:
               debugShowCheckedModeBanner: false,
               theme: ThemeData(
                 brightness: Brightness.dark,
-                primarySwatch: Colors.emerald,
                 scaffoldBackgroundColor: const Color(0xff121212),
-                hintColor: Colors.emeraldAccent,
               ),
               home: const HomeScreen(),
             );
@@ -73,7 +74,7 @@ jobs:
           Widget build(BuildContext context) {
             return Scaffold(
               appBar: AppBar(
-                title: const Text('منصة نجد AI', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'sans-serif')),
+                title: const Text('منصة نجد AI', style: TextStyle(fontWeight: FontWeight.bold)),
                 centerTitle: true,
                 backgroundColor: const Color(0xff1e1e1e),
                 elevation: 0,
@@ -85,7 +86,7 @@ jobs:
                     const Icon(
                       Icons.blur_on_rounded,
                       size: 120,
-                      color: Colors.emeraldAccent,
+                      color: Color(0xff10b981),
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -108,7 +109,7 @@ jobs:
                       icon: const Icon(Icons.chat_bubble_outline, size: 24),
                       label: const Text('ابدأ المحادثة الذكية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.emerald,
+                        backgroundColor: const Color(0xff059669),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -135,7 +136,6 @@ jobs:
           final FlutterTts _flutterTts = FlutterTts();
           bool _isLoading = false;
 
-          // جلب مفتاح الـ API الممرر وقت البناء من السيرفر
           final String _apiKey = const String.fromEnvironment('GEMINI_API_KEY');
 
           @override
@@ -155,9 +155,8 @@ jobs:
             }
           }
 
-          // نظام فلترة عائلي آمن للكلمات غير المناسبة
           String _filterContent(String text) {
-            List<String> forbiddenWords = ['سبايك', 'كلب', 'حمار', 'وسخ']; // يمكنك زيادة القائمة
+            List<String> forbiddenWords = ['سبايك', 'كلب', 'حمار', 'وسخ'];
             String filtered = text;
             for (var word in forbiddenWords) {
               filtered = filtered.replaceAll(word, '***');
@@ -177,7 +176,6 @@ jobs:
               _isLoading = true;
             });
 
-            // إرسال الطلب إلى نموذج جيميناي
             try {
               final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$_apiKey');
               final response = await http.post(
@@ -207,7 +205,7 @@ jobs:
               }
             } catch (e) {
               setState(() {
-                _messages.add({"sender": "najd", "text": "تأكد من اتصالك بالإنترنت ومفتاح الـ API."});
+                _messages.add({"sender": "najd", "text": "تأكت من اتصال الإنترنت ومفتاح الـ API."});
               });
             } finally {
               setState(() {
@@ -233,12 +231,12 @@ jobs:
                         final msg = _messages[index];
                         bool isUser = msg['sender'] == 'user';
                         return Align(
-                          alignment: isUser ? Alignment.centerLeft : Alignment.centerRight;
+                          alignment: isUser ? Alignment.centerLeft : Alignment.centerRight,
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: isUser ? Colors.emerald[700] : const Color(0xff2a2a2a),
+                              color: isUser ? const Color(0xff047857) : const Color(0xff2a2a2a),
                               borderRadius: BorderRadius.only(
                                 topLeft: const Radius.circular(16),
                                 topRight: const Radius.circular(16),
@@ -258,7 +256,7 @@ jobs:
                                   IconButton(
                                     constraints: const BoxConstraints(),
                                     padding: EdgeInsets.zero,
-                                    icon: const Icon(Icons.volume_up, color: Colors.emeraldAccent, size: 20),
+                                    icon: const Icon(Icons.volume_up, color: Color(0xff34d399), size: 20),
                                     onPressed: () => _speak(msg['text'] ?? ''),
                                   )
                                 ]
@@ -272,7 +270,7 @@ jobs:
                   if (_isLoading)
                     const Padding(
                       padding: EdgeInsets.all(8.0),
-                      child: CircularProgressIndicator(color: Colors.emeraldAccent),
+                      child: CircularProgressIndicator(color: Color(0xff34d399)),
                     ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -289,7 +287,7 @@ jobs:
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.send, color: Colors.emeraldAccent),
+                          icon: const Icon(Icons.send, color: Color(0xff34d399)),
                           onPressed: _sendMessage,
                         ),
                       ],
