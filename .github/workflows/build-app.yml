@@ -29,15 +29,15 @@ jobs:
 
     - name: Initialize Project & Install Packages
       run: |
-        # 1. إنشاء مشروع فلوتر نظيف وجديد بالكامل لتجنب أي ملفات تالفة سابقة
+        # 1. إنشاء مشروع فلوتر نظيف بأحدث القوالب الرسمية المستقرة
         flutter create . --overwrite --org com.Alnofaie
         
-        # 2. حقن صلاحيات الأندرويد الأساسية في المانيفست بشكل آمن
+        # 2. حقن صلاحيات الأندرويد الأساسية في المانيفست بأمر آمن
         if [ -f "android/app/src/main/AndroidManifest.xml" ]; then
           sed -i '' 's|<manifest .*|&\n    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>|' android/app/src/main/AndroidManifest.xml
         fi
         
-        # 3. تجهيز مجلدات الخدمات والفايربيس وإدخال الـ Secrets إذا تواجدت
+        # 3. ترويض ملفات الفايربيس والـ Secrets
         mkdir -p android/app ios/Runner
         if [ ! -z "${{ secrets.FIREBASE_JSON_CONTENT }}" ]; then
           echo '${{ secrets.FIREBASE_JSON_CONTENT }}' > android/app/google-services.json
@@ -46,64 +46,21 @@ jobs:
           echo '${{ secrets.FIREBASE_IOS_PLIST }}' > ios/Runner/GoogleService-Info.plist
         fi
         
-        # 4. إعادة كتابة ملف الـ build.gradle.kts الرئيسي بالكامل (الجذر) بطريقة الكوتلن الصارمة والنظيفة
-        cat << 'EOF' > android/build.gradle.kts
-        allprojects {
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath("com.android.tools.build:gradle:8.1.0")
-                classpath("com.google.gms:google-services:4.4.1")
-                classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22")
-            }
-        }
-        tasks.register<Delete>("clean") {
-            delete(rootProject.buildDir)
-        }
-        EOF
-
-        # 5. إعادة كتابة ملف الـ build.gradle.kts الخاص بالتطبيق (android/app/) ليدمج الفايربيس والـ minSdkVersion المضمونة
-        cat << 'EOF' > android/app/build.gradle.kts
-        plugins {
-            id("com.android.application")
-            id("kotlin-android")
-            id("com.google.gms.google-services")
-            id("dev.flutter.flutter-gradle-plugin")
-        }
-
-        android {
-            namespace = "com.Alnofaie"
-            compileSdk = 34
-
-            defaultConfig {
-                applicationId = "com.Alnofaie"
-                minSdkVersion = 23
-                targetSdk = 34
-                versionCode = 1
-                versionName = "1.0.0"
-            }
-
-            buildTypes {
-                release {
-                    signingConfig = signingConfigs.getByName("debug")
-                    isMinifyEnabled = false
-                    isShrinkResources = false
-                fi
-            }
-        }
-        EOF
-
-        # 6. إضافة حزم فلوتر المطلوبة للمشروع والمنصة وتحديث المكاتب
+        # 4. إضافة حزم فلوتر المطلوبة للمشروع
         flutter pub add http flutter_tts image_picker file_picker firebase_core firebase_auth shared_preferences url_launcher
         flutter pub get
+
+        # 5. [الطريقة المضمونة] حقن الفايربيس داخل ملفات kts الرسمية دون تعديل البنية كاملة
+        if [ -f "android/build.gradle.kts" ]; then
+          # إدراج معرف الفايربيس في كتل الـ plugins للجذر
+          sed -i '' 's|plugins {|plugins {\n    id("com.google.gms.google-services") version "4.4.1" apply false|' android/build.gradle.kts
+          
+          # تفعيل الملحق داخل ملف تطبيق الأندرويد kts
+          sed -i '' 's|plugins {|plugins {\n    id("com.google.gms.google-services")|' android/app/build.gradle.kts
+          
+          # تعديل الـ minSdkVersion ليتوافق مع الفايربيس بشكل صحيح داخل ملف الـ kts الافتراضي
+          sed -i '' 's/minSdkVersion = .*/minSdkVersion = 23/g' android/app/build.gradle.kts || true
+        fi
 
     - name: Execute Conditional Building
       env:
@@ -112,7 +69,7 @@ jobs:
         WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
         WEB_APP_ID: ${{ secrets.FIREBASE_WEB_APP_ID }}
       run: |
-        # ملاحظة للمحرك البرمجي لـ نجد AI: قم بالتحكم بالأسطر أدناه تفعيلاً أو تعطيلاً بناءً على رغبة المستخدم النصية:
+        # ملاحظة للمحرك البرمجي لـ نجد AI: قم بالتحكم بالأسطر أدناه تفعيلاً أو تعطيلاً بناءً على رغبة المستخدم:
         
         # --- [منصة الويب] ---
         flutter build web --release --no-wasm-dry-run --dart-define=GEMINI_API_KEY="$GEMINI_KEY" --dart-define=GH_TOKEN="$GH_TOKEN_ENV" --dart-define=FIREBASE_WEB_API_KEY="$WEB_API_KEY" --dart-define=FIREBASE_WEB_APP_ID="$WEB_APP_ID"
@@ -141,5 +98,5 @@ jobs:
         token: ${{ secrets.GH_TOKEN }}
         tag_name: v4.0.${{ github.run_number }}
         name: تطبيق مخصص المنصات جاهز للتحميل #${{ github.run_number }}
-        body: "تم بناء التطبيق وتجهيز المنصات واللغات المطلوبة بنجاح بواسطة محرك نجد AI البدوي والذكّي لخدمة الجمهور."
+        body: "تم بناء التطبيق وتجهيز المنصات واللغات المطلوبة بنجاح بواسطة محرك نجد AI البدوي والذكي لخدمة الجمهور."
         
