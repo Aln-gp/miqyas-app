@@ -46,22 +46,10 @@ jobs:
           echo '${{ secrets.FIREBASE_IOS_PLIST }}' > ios/Runner/GoogleService-Info.plist
         fi
         
-        # ربط مكاتب الفايربيس بالطريقة الصحيحة المتوافقة مع ملفات kts والجراديل الكلاسيكية
+        # ربط مكاتب الفايربيس بالطريقة الحديثة والمضمونة لملفات kts وبسطر واحد لتفادي أخطاء القفل
         if [ -f "android/build.gradle.kts" ]; then
-          # كتابة كتلة buildscript منسقة على أسطر منفصلة لتجنب خطأ الـ receiver type mismatch في كوتلن
-          cat << 'EOF' > temp_gradle.kts
-          buildscript {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath("com.google.gms:google-services:4.4.1")
-              }
-          }
-          EOF
-          cat android/build.gradle.kts >> temp_gradle.kts
-          mv temp_gradle.kts android/build.gradle.kts
+          # إدخال مستودع ومكتب جوجل سرفيسز في الملف الرئيسي بسطر مباشر نظيف
+          sed -i '' 's|plugins {|plugins {\n    id("com.google.gms.google-services") version "4.4.1" apply false|' android/build.gradle.kts
           
           # تفعيل الملحق داخل ملف تطبيق الأندرويد kts
           sed -i '' 's|plugins {|plugins {\n    id("com.google.gms.google-services")|' android/app/build.gradle.kts
